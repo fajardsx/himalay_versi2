@@ -1,0 +1,8 @@
+class ACTION_TYPE {
+    static ISFIRST = 'CHANGE_STATUS_ISFIRSTOPEN';
+    static UPDATE_USER = 'UPDATE_USER';
+    static UPDATE_SCHEDULE = "UPDATE_SCHEDULE";
+    static CLEAR_DATA = "CLEAR_DATA";
+}
+
+export default ACTION_TYPE;
