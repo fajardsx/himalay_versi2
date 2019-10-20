@@ -13,7 +13,9 @@ import CheckComponent from "../../module_check";
 import { SYNCLoc, LEMARI_GLOBAL_DETAIL_GET } from "../../module_async/AsyncManager";
 import KEYS from "../../module_async/utils/keyAsync";
 import DoktorCell_opt from "./doktorCell";
-
+//REDUX
+import { connect } from 'react-redux';
+import ACTION_TYPE from "../../../redux/actions/actions";
 const cellH = convertWidth('4%');
 let that = null
 let near = false;
@@ -62,27 +64,27 @@ class HospitalCell_opt extends React.Component {
     componentWillUnmount(){
         this._isMounted = false;
     }
-    componentWillReceiveProps(prevProps,prevState){
-        if(this.props.dataHospital){
-          if (this._isMounted) {
-            this.setState({
-              data: this.props.dataHospital,
-              dokters: this.props.dataHospital.dataHospital.doctors,
-              listDoctor: this.props.dataHospital.dataHospital.doctors.length,
-            }, () => { this.onCekAvaialbeDoctor() })
-          }
-        }
-      if (prevProps.userrole != this.props.userrole){
-          if(this._isMounted){
-            console.log("UPDATE")
-            this.setState({
-              data: this.props.dataHospital,
-              dokters: this.props.dataHospital.dataHospital.doctors,
-              listDoctor: this.props.dataHospital.dataHospital.doctors.length,
-            }, () => { this.onCekAvaialbeDoctor() })
-          }
-      }
-    }
+    // UNSAGE_componentWillReceiveProps(prevProps,prevState){
+    //     if(this.props.dataHospital){
+    //       if (this._isMounted) {
+    //         this.setState({
+    //           data: this.props.dataHospital,
+    //           dokters: this.props.dataHospital.dataHospital.doctors,
+    //           listDoctor: this.props.dataHospital.dataHospital.doctors.length,
+    //         }, () => { this.onCekAvaialbeDoctor() })
+    //       }
+    //     }
+    //   if (prevProps.userrole != this.props.userrole){
+    //       if(this._isMounted){
+    //         console.log("UPDATE")
+    //         this.setState({
+    //           data: this.props.dataHospital,
+    //           dokters: this.props.dataHospital.dataHospital.doctors,
+    //           listDoctor: this.props.dataHospital.dataHospital.doctors.length,
+    //         }, () => { this.onCekAvaialbeDoctor() })
+    //       }
+    //   }
+    // }
     onRumahSakitSelect(id) {
         console.log('rumah sakit', id)
         const { celldata } = this.state;
@@ -391,7 +393,7 @@ class HospitalCell_opt extends React.Component {
                                 this.props.dataJarak.parentdata.rsnear
                               }
                               key={index}
-                              userrole={this.props.userrole}
+                              //userrole={this.props.userrole}
                               parentid={index}
                               dataSelect={this.state.dataSelect}
                               //dataSchedule={datas.data}
@@ -419,7 +421,7 @@ class HospitalCell_opt extends React.Component {
                                 this.props.dataJarak.parentdata.rsnear
                               }
                               key={index}
-                              userrole={this.props.userrole}
+                              //userrole={this.props.userrole}
                               parentid={index}
                               dataSelect={this.state.dataSelect}
                               //dataSchedule={datas.data}
@@ -447,7 +449,7 @@ class HospitalCell_opt extends React.Component {
                                 this.props.dataJarak.parentdata.rsnear
                               }
                               key={index}
-                              userrole={this.props.userrole}
+                              //userrole={this.props.userrole}
                               parentid={index}
                               dataSelect={this.state.dataSelect}
                               //dataSchedule={datas.data}
@@ -474,7 +476,7 @@ class HospitalCell_opt extends React.Component {
                                 this.props.dataJarak.parentdata.rsnear
                               }
                               key={index}
-                              userrole={this.props.userrole}
+                              //userrole={this.props.userrole}
                               parentid={index}
                               dataSelect={this.state.dataSelect}
                               //dataSchedule={datas.data}
@@ -535,4 +537,20 @@ const styles = StyleSheet.create({
         marginRight: convertWidth('1.8%')
     }
 })
-export default HospitalCell_opt;
+/***/
+function mapStateToProps(state) {
+  return {
+
+      userrole:state.userRole
+  };
+}
+function dispatchToProps(dispatch) {
+  return {
+      updateRole: role =>
+          dispatch({ type: ACTION_TYPE.UPDATE_USERROLE,value:role }),
+  };
+}
+export default connect(
+  mapStateToProps,
+  dispatchToProps,
+)( HospitalCell_opt);

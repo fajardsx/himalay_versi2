@@ -14,6 +14,7 @@ import { loginUser } from '../module_api/module_resapi'
 import { LEMARI_GLOBAL_LOC, SYNCLoc, LEMARI_GLOBAL_LOAD } from '../appcomponent/module_async/AsyncManager';
 import KEYS from '../appcomponent/module_async/utils/keyAsync';
 import ScreeDevmode from '../screen/screen_devmode';
+import { moderateScale } from '../styleapp/scaling';
 
 
 // create a component
@@ -357,13 +358,13 @@ class LoginScreen extends React.Component {
                             resizeMode={'contain'}
                             source={require("../../assets/ASET/LONCENG.png")}
                         />
-                        <Text style={[styles.forgotPassText, { textAlign: "left", fontSize: convertWidth('2.2%'), color: Constant.COLOR_GRAY, width: convertHeight('25%') }]}>
+                        <Text style={[styles.forgotPassText, { textAlign: "left", fontSize: moderateScale(18), color: Constant.COLOR_GRAY, width: moderateScale(175) }]}>
                             Notifications
                         </Text>
                         <TouchableOpacity onPress={() => this._onPressPermission(Constant.TYPE_NOTIF)}
                             style={[styles.allowContainer, { backgroundColor: this.state.allownotif ? Constant.COLOR_GREEN1 : "#fff" }]}
                         >
-                            <Text style={[styles.loginText, { fontSize: convertWidth('1.5%'), color: this.state.allownotif ? "#fff" : "#C1C1C2" }]}>Allow</Text>
+                            <Text style={[styles.loginText, { fontSize: moderateScale(13), color: this.state.allownotif ? "#fff" : "#C1C1C2" }]}>Allow</Text>
                         </TouchableOpacity>
                     </View>
                     <View style={styles.barLogin}>
@@ -375,13 +376,13 @@ class LoginScreen extends React.Component {
                             resizeMode={'contain'}
                             source={require("../../assets/ASET/LOCATION.png")}
                         />
-                        <Text style={[styles.forgotPassText, { textAlign: "left", fontSize: convertWidth('2.2%'), color: Constant.COLOR_GRAY, width: convertHeight('25%') }]}>
+                        <Text style={[styles.forgotPassText, { textAlign: "left", fontSize: moderateScale(18), color: Constant.COLOR_GRAY, width: moderateScale(175) }]}>
                             Location
                         </Text>
                         <TouchableOpacity onPress={() => this._onPressPermission(Constant.TYPE_GPS)}
                             style={[styles.allowContainer, { backgroundColor: this.state.allowgps ? Constant.COLOR_GREEN1 : "#fff" }]}
                         >
-                            <Text style={[styles.loginText, { fontSize: convertWidth('1.5%'), color: this.state.allowgps ? "#fff" : "#C1C1C2" }]}>Allow</Text>
+                            <Text style={[styles.loginText, { fontSize:  moderateScale(13), color: this.state.allowgps ? "#fff" : "#C1C1C2" }]}>Allow</Text>
                         </TouchableOpacity>
                     </View>
 

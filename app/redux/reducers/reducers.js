@@ -4,7 +4,11 @@ const initialState = {
   firstopen: true,
   unreadNotification: 0,
   userData: null,
-  scheduleData: null
+  userGeolocation: null,
+  scheduleData: null,
+  currentScheduleData: null,
+  userRole: -1,
+  userAttendExpired: false,
 };
 
 //REDUCER
@@ -15,16 +19,26 @@ const reducer = (state = initialState, action) => {
   // }
   switch (action.type) {
     case ACTION_TYPE.ISFIRST:
-      return { ...state, firstopen: action.value };
+      return {...state, firstopen: action.value};
     case ACTION_TYPE.UPDATE_USER:
-      return { ...state, userData: action.value };
+      return {...state, userData: action.value};
+    case ACTION_TYPE.UPDATE_USER_LOCATION:
+      return {...state, userGeolocation: action.value};
     case ACTION_TYPE.UPDATE_SCHEDULE:
-      return { ...state, scheduleData: action.value };
+      return {...state, scheduleData: action.value};
+    case ACTION_TYPE.UPDATE_CURRENTSCHEDULE:
+      return {...state, currentScheduleData: action.value};
+    case ACTION_TYPE.UPDATE_USERROLE:
+      return {...state, userRole: action.value};
+    case ACTION_TYPE.UPDATE_USERATTENDEXPIRED:
+      return {...state, userAttendExpired: action.value};
     case ACTION_TYPE.CLEAR_DATA:
       return {
         ...state,
         userData: null,
-        scheduleData: null
+        scheduleData: null,
+        userRole: -1,
+        currentScheduleData: null,
       };
   }
   return state;

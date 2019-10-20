@@ -1,5 +1,5 @@
-import { Dimensions } from 'react-native';
-const { width, height } = Dimensions.get('window');
+import {Dimensions} from 'react-native';
+const {width, height} = Dimensions.get('window');
 
 //guideline sizes are based on standart ~5 screen mobile devices
 const guidelinebasewidth = 667;
@@ -10,4 +10,4 @@ const verticalScale = size => (height / guidelinebaseheight) * size;
 const moderateScale = (size, factor = 0.5) =>
   size + (scale(size) - size) * factor;
 
-export { scale, verticalScale, moderateScale };
+export {scale, verticalScale, moderateScale};

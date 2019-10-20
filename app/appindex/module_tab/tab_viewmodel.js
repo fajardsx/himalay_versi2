@@ -7,10 +7,10 @@ import BottomNavigation, {
 } from 'react-native-material-bottom-navigation';
 //import OneSignal from "react-native-onesignal";
 import Constant from "../../global/Constant";
-import Global, { getDateNumber, getDateNumberAttend, saveAttenToCore, SYNCLoc_CORE_GET, UPDATE_SET_TODAY, SYNCLoc_CORE_SET } from "../../global/Global";
+import Global, { getDateNumber, getDateNumberAttend, saveAttenToCore, SYNCLoc_CORE_GET, UPDATE_SET_TODAY, SYNCLoc_CORE_SET, updateSelectSchedule } from "../../global/Global";
 import user from "../../global/user";
 import { _handleAppStateChange, convertHeight, convertWidth, callAlert, generateSelectDokter, getLocal, delLocal, successLogutClear, loading, reqNotifList, _sendSubmitComplete, addLocal, getListLocation, getExpendsList, callToast, formateFullDateNumber, getDokterId, getListTarget, rebuildSchedule, getDokterIdTab, getListTargetBK, getListUnTarget, _getDoktorDetail, getIfYesterday, _reqAboutUs, _checkStatus, Global_checkStatus, getDokterisArray, Global_resetShceduleSession, getDoctorById, reduceWithMetSchedule, _sendAtten, getDokterIdTabBySetSchedule } from "../../global/Global"
-
+//REDUX
 import { connect } from 'react-redux';
 import ACTION_TYPE from "../../redux/actions/actions";
 //view page
@@ -110,6 +110,7 @@ class TabController extends Component {
     }
     componentWillMount() {
         console.log('TAB')
+        console.log("INIT ROLE",this.props.userrole)
         this.initOS();
         //this._checkStatus();
 
@@ -215,22 +216,26 @@ class TabController extends Component {
     // FUNCTION
     //CHANGE ROOT ROLE
     onUpdateRole(value, callEnd = false) {
+        // this.setState({
+        //     ROLE: value,
+
+        // }, () => {
+        //     this.setState({
+        //         init_apps: true
+        //     })
+        // });
+        this.props.updateRole(value);
+        console.log('tab_viewmodel.js 227 => ROLE', this.props.userrole);
         this.setState({
-            ROLE: value,
-
-        }, () => {
-            this.setState({
-                init_apps: true
-            })
-        });
-
+            init_apps: true
+        })
         if (callEnd == true) {
             this._sendAttendSchedule('out', true);
         }
     }
     //CHANGE ROLE ACTIVITY USER
     onStartSelectSchedule() {
-        const { ROLE } = this.state;
+        let ROLE = this.props.userrole;
         if (ROLE == Constant.ROLE_INLOGIN) {
             this._sendAttendSchedule('in');
             //user.updateStatusRole(Constant.ROLE_INSELECTSCHEDULE);
@@ -331,7 +336,7 @@ class TabController extends Component {
 
         });
     }
-    //event show burger menu
+    //** EVENT SHOW POP BURGER */
 
     onPressStartCancel() {
         this.setState({
@@ -468,8 +473,10 @@ class TabController extends Component {
         // console.log('proces',data);
         //save complete schedule
         user.updateUserDoneMonth(this.state.complete_yesterday);
-
-        Global_checkStatus(this.onUpdateRole.bind(this))
+        if(this.props.userattendIsExpired == true){
+            this.onUpdateRole(Constant.ROLE_FINISHTODAY,true)
+        }
+        //Global_checkStatus(this.onUpdateRole.bind(this))
         // ASYNC_getScheduleToday(KEYS.KEY_LISTDOCTODAY)
     }
 
@@ -626,7 +633,7 @@ class TabController extends Component {
         }*/
     }
     ///////////
-
+    //** TAB INIT */
     onSetTab = (show) => {
         //if (this.state.isLoading == false && this.state.dataschedule.length>0){
         //console.log(this.state.dataschedule)
@@ -657,7 +664,7 @@ class TabController extends Component {
                     _onUpdateRole: this.onUpdateRole.bind(this),
                     _onNotifOpen: this._onNotifOpen.bind(this),
                     _onOpenList: this.onOpenList.bind(this),
-                    _role: this.state.ROLE,
+                    //_role: this.state.ROLE,
                     _initapps: this.state.init_apps
                     //_rootloading: this.state.isLoading,
                 }} />
@@ -881,7 +888,7 @@ class TabController extends Component {
         let _data = null;
         if (st12 == 'in') {
             _data = {
-                user_id: user.getUsId(),
+                user_id: this.props.userData.profile_id,
                 attend: {
                     in: dateCall,
                     out: ""
@@ -891,11 +898,19 @@ class TabController extends Component {
             }
 
         }
+
+        //check attend in 
+        let atten_in = null;
+        if(this.props.scheduleData.attend){
+            atten_in = this.props.scheduleData.attend.in;
+        }else{
+           // callAlert("","Tidak Ada Absen hari ini");
+        }
         if (st12 == 'out' && isExpired == false) {
             _data = {
-                user_id: user.getUsId(),
+                user_id: this.props.userData.profile_id,
                 attend: {
-                    in: user.getUserAttend().in,
+                    in: atten_in,
                     out: dateCall
                 },
                 status: st12,
@@ -905,13 +920,13 @@ class TabController extends Component {
 
 
         if (isExpired == true) {
-            let datenow = user.getUserAttend().in;
+            let datenow = atten_in;
             let tempIn = getDateNumberAttend(datenow, "YYYY-MM-DD");
             dateCall = tempIn + " 23:59:00";
             _data = {
-                user_id: user.getUsId(),
+                user_id: this.props.userData.profile_id,
                 attend: {
-                    in: user.getUserAttend().in,
+                    in:atten_in,
                     out: dateCall
                 },
                 date_check: dateCall
@@ -920,12 +935,10 @@ class TabController extends Component {
 
         saveAttenToCore(_data.attend);//SAVE ATTEND TO CORE DATA
 
-        this.setState({
-            //isLoading: true
-        });
+      
         if (isExpired == false) {
             let data = new FormData();
-            data.append("user_id", user.getUsId());
+            data.append("user_id", this.props.userData.profile_id);
             data.append("status", st12);
             data.append("date", dateCall);
             console.log("FINISH ", data);
@@ -952,8 +965,8 @@ class TabController extends Component {
             }
         } else if (isExpired == true) {
             let data = new FormData();
-            data.append("user_id", user.getUsId());
-            data.append("in", user.getUserAttend().in);
+            data.append("user_id", this.props.userData.profile_id);
+            data.append("in",  this.props.scheduleData.attend.in);
             data.append("out", dateCall);
             //data.append("date", dateCall);
             that.onOffAttendSYNC(_data, st12, false, isExpired);
@@ -976,11 +989,6 @@ class TabController extends Component {
                 that.onOffAttendSYNC(_data, st12, true, isExpired);
             }
         }
-
-
-
-
-
     }
     //ATTEND OFFLINE
     //SIgnal init
@@ -1039,10 +1047,12 @@ class TabController extends Component {
                 if (res) {
                     if (res.set_schedule.length > 0) {
                         user.updateStatusRole(Constant.ROLE_READYSTARTSCHEDULE);
+                        that.props.updateRole(Constant.ROLE_READYSTARTSCHEDULE);
                         // user.updateUserAttend(_data);
                         that.setState({ isLoading: false, ROLE: Constant.ROLE_READYSTARTSCHEDULE });
                     } else {
                         user.updateStatusRole(Constant.ROLE_INSELECTSCHEDULE);
+                        that.props.updateRole(Constant.ROLE_INSELECTSCHEDULE);
                         // user.updateUserAttend(_data);
                         that.setState({ isLoading: false, ROLE: Constant.ROLE_INSELECTSCHEDULE });
                     }
@@ -1075,6 +1085,7 @@ class TabController extends Component {
                 updateUserAttend(_data)
                 user.updateUserAttend(_data.attend);
                 user.updateStatusRole(Constant.ROLE_FINISHTODAY);
+                this.props.updateRole(Constant.ROLE_FINISHTODAY);
                 console.log(user.getUserAttend())
                 this.setState({ isLoading: false, ROLE: Constant.ROLE_FINISHTODAY });
             } else if (isExpired == true) {
@@ -1122,7 +1133,7 @@ class TabController extends Component {
         console.log("NEW SESSION");
         let dateCall = formateFullDateNumber(Date.now(), "YYYY-MM-DD HH:mm:ss");
         let _data = {
-            user_id: user.getUsId(),
+            user_id: this.props.userData.profile_id,
             attend: {
                 in: "",
                 out: ""
@@ -1139,6 +1150,8 @@ class TabController extends Component {
             Global_resetShceduleSession(that._getreqSchedule2.bind(that));
             let limit = setTimeout(() => {
                 user.updateStatusRole(Constant.ROLE_INLOGIN);
+                
+                that.props.updateRole(Constant.ROLE_INLOGIN);
                 user.updateSelectSchedule([]);
                 that.setState({ isLoading: false, ROLE: Constant.ROLE_INLOGIN });
                 clearTimeout(limit);
@@ -1319,20 +1332,30 @@ class TabController extends Component {
 
                     console.log("today", setVisitToday);
                     console.log("today is", set_schedule_rebuild);
+                    console.log(" this.props.scheduleData",  this.props.scheduleData);
                     //console.log("month", setVisitMonth);
-                    that.setState({
-                        dataschedule: setVisitMonth,
-                        selectToday: data.list_doctor_set_today,
-                        selectschedule: set_schedule_rebuild,
-                        complete_yesterday: data.list_doctor_set_this_month,
 
-                    }, () => {
+                    //SAVE BUILD
+                    let tempScheduleData = Object.assign({},this.props.scheduleData);
+                    tempScheduleData.visit_schedule = setVisitMonth;
+                    tempScheduleData.set_schedule = set_schedule_rebuild;
+                    tempScheduleData.list_doctor_set_today = data.list_doctor_set_today;
+                    tempScheduleData.list_doctor_set_this_month = data.list_doctor_set_this_month;
+                    this.props.updateCurrentSchedule(tempScheduleData)
+                    // //
+                    // that.setState({
+                    //     dataschedule: setVisitMonth,
+                    //     selectToday: data.list_doctor_set_today,
+                    //     selectschedule: set_schedule_rebuild,
+                    //     complete_yesterday: data.list_doctor_set_this_month,
+                    // }, () => {
                         if (_proccess == true) {
                             that.onProcessSchdedule()
                         }
-                    });
+                   // });
 
                     console.log('user', this.state.ROLE);
+                    console.log('tab_viewmodel.js 1339 => ROLE', this.props.userrole);
                     let _data = {
                         visit_schedule: setVisitMonth,
                         set_schedule: fromids.length > 0 ? setVisitToday : tempset
@@ -1358,279 +1381,8 @@ class TabController extends Component {
                 that.onPressLogoutBurgerMenu("Data Not Found,Please login again.")
             }
         }
-        // return DATA_SCHEDULE.getDataSchedule().then(res => {
-        //     console.log("_getreqSchedule2====================================================================")
-        //     console.log("res _getreqSchedule2", res);
-        //     if (res == undefined) {
-        //         return;
-        //     }
-        //     let data = null;
-
-        //     if (res[0]) {
-        //         data = res[0]
-        //     } else {
-        //         data = res;
-        //     }
-
-
-        //     if (data) {
-        //         let resids = getDokterIdTab(data.list_doctor_set_today);
-        //         let ids = [];
-        //         let tempset = data.set_schedule.slice(0);
-        //         let temp2 = data.visit_schedule.slice(0)
-        //         let _result = null;
-        //         let set_schedule_rebuild = rebuildSchedule(tempset);
-
-        //         return LEMARI_GLOBAL_LOAD(KEYS.KEY_SELECTTARGET).then((res_ids) => {
-        //             //SET IS SELECT FROM LIST_SET_DOCTOR_TODAY
-        //             let fromids = null;
-
-        //             console.log('ids res', resids)
-        //             console.log('ids', res_ids)
-        //             if (res_ids) {
-        //                 let expired = getIfYesterday(getDateNumber(res_ids[0].date, "YYYY-MM-DD"), getDateNumber(Date.now(), "YYYY-MM-DD"))
-        //                 if (!expired) {
-        //                     fromids = resids.length > res_ids[0].datas.length ? resids : res_ids[0].datas;
-        //                     //callToast("fromid" + fromids.length);
-        //                 } else {
-        //                     fromids = [];
-        //                     //callToast("fromid" + fromids.length);
-        //                 }
-
-        //             } else {
-        //                 fromids = resids;
-        //             }
-        //             console.log('fromid', fromids)
-        //             let setVisitMonth = rebuildSchedule(temp2);
-        //             const setVisitToday = getListTargetBK(setVisitMonth, fromids);
-        //             //let setVisitMonthAfterReduce = reduceWithMetSchedule(data.list_doctor_set_this_month,setVisitMonth);
-
-        //             console.log("today", setVisitToday);
-        //             console.log("today is", set_schedule_rebuild);
-        //             //console.log("month", setVisitMonth);
-        //             that.setState({
-        //                 dataschedule: setVisitMonth,
-        //                 selectToday: data.list_doctor_set_today,
-        //                 selectschedule: set_schedule_rebuild,
-        //                 complete_yesterday: data.list_doctor_set_this_month,
-
-        //             }, () => {
-        //                 if (_proccess == true) {
-        //                     that.onProcessSchdedule()
-        //                 }
-        //             });
-
-        //             console.log('user', this.state.ROLE);
-        //             let _data = {
-        //                 visit_schedule: setVisitMonth,
-        //                 set_schedule: fromids.length > 0 ? setVisitToday : tempset
-        //             };
-        //             //console.log('set', _data);
-
-        //             //if(this.state.ROLE == Constant.ROLE_READYSTARTSCHEDULE){
-        //             let listDoktor = [];
-        //             GetAllDocter(listDoktor).then(() => {
-        //                 console.log("list FIND DETAIL DOKTER", listDoktor);
-        //                 that.setState({
-        //                     complete: listDoktor
-        //                 }, () => that.initDoktor(listDoktor, 0))
-
-        //             })
-        //             //}
-
-
-        //             console.log("_getreqSchedule2=============================DONE=====================================")
-        //             return _data;
-        //         })
-        //     } else {
-        //         that.onPressLogoutBurgerMenu("Data Not Found,Please login again.")
-        //     }
-        // })
-
-
     }
-    //BK
-    /*_getreqSchedule2_BK(_proccess = true){
-
-            return SYNCLoc(KEYS.KEY_G,KEYS.KEY_SCHEDULE).then(res => {
-                console.log("_getreqSchedule2====================================================================")
-                console.log("res _getreqSchedule2", res);
-               
-                let data = res[0];
-                if (res[0].length == 1) {
-                    data = data[0];
-                }
-                if (data) {
-                    let resids = getDokterIdTab(data.list_doctor_set_today);
-                    let ids = [];
-                    let tempset = data.set_schedule.slice(0);
-                    let temp2 = data.visit_schedule.slice(0)
-                    let _result = null;
-                    let set_schedule_rebuild = rebuildSchedule(tempset);
-
-                    return LEMARI_GLOBAL_LOAD(KEYS.KEY_SELECTTARGET).then((res_ids) => {
-
-                        let fromids = null;
-
-                        console.log('ids res', resids)
-                        console.log('ids', res_ids)
-                        if (res_ids) {
-                            let expired = getIfYesterday(getDateNumber(res_ids[0].date, "YYYY-MM-DD"), getDateNumber(Date.now(), "YYYY-MM-DD"))
-                            if (!expired) {
-                                fromids = resids.length > res_ids[0].datas.length ? resids : res_ids[0].datas;
-                                //callToast("fromid" + fromids.length);
-                            } else {
-                                fromids = [];
-                                //callToast("fromid" + fromids.length);
-                            }
-
-                        } else {
-                            fromids = resids;
-                        }
-                        let temp2 = data.visit_schedule.slice(0)
-
-                        console.log('fromid', fromids)
-                        let setVisitMonth = rebuildSchedule(temp2);
-                        const setVisitToday = getListTargetBK(setVisitMonth, fromids);
-                        //let setVisitMonthAfterReduce = reduceWithMetSchedule(data.list_doctor_set_this_month,setVisitMonth);
-                        
-                        console.log("today", setVisitToday);
-                        console.log("today is", set_schedule_rebuild);
-                        console.log("month", setVisitMonth);
-                        that.setState({
-                            dataschedule: setVisitMonth,
-                            selectToday: data.list_doctor_set_today,
-                            selectschedule: set_schedule_rebuild,//setVisitToday,
-                            //complete: data.list_doctor_visit_this_month,
-                            complete_yesterday: data.list_doctor_set_this_month,
-                            //isLoading: false
-                        }, () => {
-                            if (_proccess == true) {
-                                that.onProcessSchdedule()
-                            }
-                        });
-
-                        console.log('user', this.state.ROLE);
-                        let _data = {
-                            visit_schedule: setVisitMonth,
-                            set_schedule: fromids.length > 0 ? setVisitToday : tempset
-                        };
-                        //console.log('set', _data);
-                      
-                        //if(this.state.ROLE == Constant.ROLE_READYSTARTSCHEDULE){
-                            let listDoktor = [];
-                            GetAllDocter(listDoktor).then(() => {
-                                console.log("list FIND DETAIL DOKTER" ,listDoktor);
-                                that.setState({
-                                    complete: listDoktor
-                                },()=>that.initDoktor(listDoktor, 0))
-                                
-                            })
-                        //}
-                       
-                        
-                        console.log("_getreqSchedule2=============================DONE=====================================")
-                        return _data;
-                    })
-                }
-
-
-            })
-       
-        
-    }*/
-    //request visit
-    /* async _getreqSchedule() {
-         const{ isFirstLoad } = this.state;
- 
-         console.log('req schedule')
-         let data = new FormData();
-         data.append("user_id", user.getUsId());
- 
-         this.setState({
-             //isLoading: true
-         });
-         try {
-             if (isFirstLoad == false) {
-                 return that._loadOffSchedule();
-             } else {
-             return result = await reqSchedule(data).then((res) => {
-                 console.log('VISIT API RESULTH', res);
- 
-                 if (res != undefined) {
-                    //console.log('req schedule', res);
-                     if (res.api_message == 'success') {
-                         
-                             let tempres = Object.assign({},res);
-                         tempres.dateCreate = getDateNumber(Date.now(), "YYYY-MM-DD")
-                             SYNCLoc(KEYS.KEY_D,KEYS.KEY_SCHEDULE);
-                             LEMARI_GLOBAL_LOC([tempres], KEYS.KEY_SCHEDULE);
-                             //let completeids = getDokterIdTab(res.list_doctor_visit_this_month)
-                             let ids = getDokterIdTab(res.list_doctor_set_today);
-                             let temp = res.visit_schedule.slice(0)
-                             let tempset = res.set_schedule.slice(0)
- 
-                             let setVisitMonth = rebuildSchedule(temp);
-                             let set_schedule_rebuild = rebuildSchedule(tempset);
-                             //find list schedule today
-                             let setVisitToday = getListTargetBK(setVisitMonth, ids);
-                             console.log('visit schedule', setVisitMonth);
-                             console.log('id today ', ids);
-                            // console.log('id yesterday ', completeids);
-                             console.log('target visit today ', setVisitToday);
-                             console.log('selectschedule ', set_schedule_rebuild);
- 
-                             //let temp2 = res.visit_schedule.slice(0)
-                             //let setUnVisitToday = getListUnTarget(temp2, ids);
-                             // console.log('untarget',setUnVisitToday)
-                             TargetSelect().then(resSelect => {
-                                 console.log('off select', resSelect)
-                                 if(!resSelect){
-                                     that._saveSelectSchedule(res.list_doctor_set_today)
-                                 };
-                             })
-                             that.setState({
-                                 dataschedule: setVisitMonth,
-                                 selectToday: res.list_doctor_set_today,
-                                 selectschedule: set_schedule_rebuild,
-                                 //complete: res.list_doctor_visit_this_month,
-                                 complete_yesterday: res.list_doctor_set_this_month,
-                                 isFirstLoad:false,
-                                // isLoading: false
-                             }, () => that.onProcessSchdedule())
-                             let tempids = getIDSAsync();
- 
-                             console.log('tempid', tempids);
- 
-                             let _data = {
-                                 visit_schedule: setVisitMonth,
-                                 set_schedule: res.set_schedule
-                             }
- 
-                             //that.initDoktor();
-                             return _data;
-                             
-                         
-                         
-                     } else {
-                         return that._loadOffSchedule();
-                     }
- 
-                 } else {
-                     return that._loadOffSchedule();
-                 }
- 
-             }
- 
-             );
-         }
-         } catch (error) {
-             console.log(error)
-             
-             return that._loadOffSchedule();
-         }
-     }*/
-
+    
     async _loadOffSchedule() {
 
         //that.initDoktor();
@@ -1689,6 +1441,7 @@ class TabController extends Component {
                     }, () => that.onProcessSchdedule())
 
                     console.log('user', this.state.ROLE);
+                    console.log('tab_viewmodels.js 1696 => ROLE', this.props.userrole);
                     let _data = {
                         visit_schedule: setVisitMonth,
                         set_schedule: fromids.length > 0 ? setVisitToday : tempset
@@ -1700,78 +1453,12 @@ class TabController extends Component {
             }
 
         })
-        /*return result = await LEMARI_GLOBAL_LOAD(KEYS.KEY_SCHEDULE).then((res) => {
-            console.log("res schedule", res);
-            let data = res[0];
-            if(res[0].length==1){
-                data = data[0];
-            }
-            if (data){
-                let resids = getDokterIdTab(data.list_doctor_set_today);
-                let ids = [];
-                let tempset = data.set_schedule.slice(0);
-                let temp2 = data.visit_schedule.slice(0)
-                let _result = null;
-                let set_schedule_rebuild = rebuildSchedule(tempset);
-
-                return LEMARI_GLOBAL_LOAD(KEYS.KEY_SELECTTARGET).then((res_ids) => {
-
-                    let fromids = null;
-
-                    console.log('ids res', resids)
-                    console.log('ids', res_ids)
-                    if (res_ids) {
-                        let expired = getIfYesterday(formateFullDateNumber(res_ids[0].date, "YYYY-MM-DD"), formateFullDateNumber(Date.now(), "YYYY-MM-DD"))
-                        if (!expired) {
-                            fromids = resids.length > res_ids[0].datas.length ? resids : res_ids[0].datas;
-                            //callToast("fromid" + fromids.length);
-                        } else {
-                            fromids = [];
-                            //callToast("fromid" + fromids.length);
-                        }
-
-                    } else {
-                        fromids = resids;
-                    }
-                    //let temp2 = data.visit_schedule.slice(0)
-                    
-                    console.log('fromid', fromids)
-                    let setVisitMonth = rebuildSchedule(temp2);
-                    const setVisitToday = getListTargetBK(setVisitMonth, fromids);
-
-                    console.log("today", setVisitToday);
-                    console.log("month", setVisitMonth);
-                    TargetSelect().then(resSelect => {
-                        console.log('off select', resSelect)
-                        if (!resSelect) {
-                            that._saveSelectSchedule(data.list_doctor_set_today)
-                        };
-                    })
-                    that.setState({
-                        dataschedule: setVisitMonth,
-                        selectToday: data.list_doctor_set_today,
-                        selectschedule: setVisitToday,
-                        //complete: data.list_doctor_visit_this_month,
-                        complete_yesterday: data.list_doctor_set_this_month,
-                        isLoading: false
-                    }, () => that.onProcessSchdedule())
-
-                    console.log('user', this.state.ROLE);
-                    let _data = {
-                        visit_schedule: setVisitMonth,
-                        set_schedule: fromids.length > 0 ? setVisitToday : tempset
-                    };
-                   // console.log('set', _data)
-                    return _data
-                    //return _result;
-                })
-            }
-            
-        })*/
+        
     }
     //SEND SELECT DOKTOR
     _reviewSelectDokter(data) {
-        let _selectDokter = generateSelectDokter(data);
+        console.log('_reviewSelectDokter dokter data ', data);
+        let _selectDokter = updateSelectSchedule(this.props.currentScheduleData.visit_schedule,data) //generateSelectDokter(data);
 
         console.log('_reviewSelectDokter dokter id ', _selectDokter);
         let rew = [];
@@ -1787,8 +1474,6 @@ class TabController extends Component {
                 })
             })
         }
-
-
     }
     async _sendSelectSchedule() {
         console.log('selec dokter ', schdeuleAToday);
@@ -1804,7 +1489,7 @@ class TabController extends Component {
             listSelect.push({ "doctors_ids": item, "date": formateFullDateNumber(Date.now(), "YYYY-MM-DD") })
         })
         ///
-        let _addMode = this.state.ROLE == Constant.ROLE_INSELECTSCHEDULE ? false : true;
+        let _addMode = this.props.userrole == Constant.ROLE_INSELECTSCHEDULE ? false : true;
         let _data = {
             user_id: user.getUsId(),
             datas: listSelect,
@@ -1827,6 +1512,7 @@ class TabController extends Component {
                 }, () => {
                     SaveSendDoctor(resSelect).then(() => {
                         user.updateStatusRole(Constant.ROLE_READYSTARTSCHEDULE);
+                        that.props.updateRole(Constant.ROLE_READYSTARTSCHEDULE)
                         that.setState({
                             ROLE: Constant.ROLE_READYSTARTSCHEDULE,
                             isLoading: false
@@ -2109,7 +1795,7 @@ class TabController extends Component {
     //REQ DETAILS DOKTOR
     initDoktor(_data, index = 0) {
         console.log(this.state.ROLE);
-        if (this.state.ROLE != Constant.ROLE_READYSTARTSCHEDULE) {
+        if (this.props.userrole != Constant.ROLE_READYSTARTSCHEDULE) {
             return;
         }
         //LEMARI_GLOBAL_DETAIL_DEL();
@@ -2477,13 +2163,24 @@ function mapStateToProps(state) {
     return {
         isFirst: state.firstopen,
         userData: state.userData,
-        scheduleData: state.scheduleData
+        scheduleData: state.scheduleData,
+        userrole:state.userRole,
+        userattendIsExpired:state.userAttendExpired,
+        currentScheduleData:state.currentScheduleData
     };
 }
 function dispatchToProps(dispatch) {
     return {
         cleardata: () =>
-            dispatch({ type: ACTION_TYPE.CLEAR_DATA })
+            dispatch({ type: ACTION_TYPE.CLEAR_DATA }),
+        updateRole: role =>
+            dispatch({ type: ACTION_TYPE.UPDATE_USERROLE,value:role }),
+        updateSchedule: schedule =>
+            dispatch({ type: ACTION_TYPE.UPDATE_SCHEDULE,value:schedule }),
+        updateCurrentSchedule: schedule =>
+            dispatch({ type: ACTION_TYPE.UPDATE_CURRENTSCHEDULE,value:schedule }),
+        updateAttendExpired: schedule =>
+            dispatch({ type: ACTION_TYPE.UPDATE_USERATTENDEXPIRED,value:schedule })
     };
 }
 export default connect(

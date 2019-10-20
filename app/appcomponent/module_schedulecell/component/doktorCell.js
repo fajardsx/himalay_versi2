@@ -12,7 +12,9 @@ import { Styleapp } from '../../../styleapp';
 import CheckComponent from "../../module_check";
 import { SYNCLoc, LEMARI_GLOBAL_DETAIL_GET } from "../../module_async/AsyncManager";
 import KEYS from "../../module_async/utils/keyAsync";
-
+//REDUX
+import { connect } from 'react-redux';
+import ACTION_TYPE from "../../../redux/actions/actions";
 const cellH = convertWidth('4%');
 let that = null
 let near = false;
@@ -62,20 +64,20 @@ class DoktorCell_opt extends React.Component {
     }
     componentWillReceiveProps(prevProps,prevState){
 
-        if (this.props.rsnear != this.state.isnear){
-            if (this.props.dataDokter) {
-                this._isMounted && this.setState({
-                    dokter: this.props.dataDokter
-                })
-            }
-        }
-        if (prevProps.userrole != this.props.userrole){
-            if (this.props.dataDokter) {
-                this._isMounted && this.setState({
-                    dokter: this.props.dataDokter
-                })
-            }
-        }
+        // if (this.props.rsnear != this.state.isnear){
+        //     if (this.props.dataDokter) {
+        //         this._isMounted && this.setState({
+        //             dokter: this.props.dataDokter
+        //         })
+        //     }
+        // }
+        // if (prevProps.userrole != this.props.userrole){
+        //     if (this.props.dataDokter) {
+        //         this._isMounted && this.setState({
+        //             dokter: this.props.dataDokter
+        //         })
+        //     }
+        // }
         
     }
     _setStatusCell(status) {
@@ -586,4 +588,20 @@ const styles = StyleSheet.create({
           color: Constant.COLOR_WHITE1 
     }
 })
-export default DoktorCell_opt;
+/***/
+function mapStateToProps(state) {
+    return {
+  
+        userrole:state.userRole
+    };
+  }
+  function dispatchToProps(dispatch) {
+    return {
+        updateRole: role =>
+            dispatch({ type: ACTION_TYPE.UPDATE_USERROLE,value:role }),
+    };
+  }
+  export default connect(
+    mapStateToProps,
+    dispatchToProps,
+  )( DoktorCell_opt);

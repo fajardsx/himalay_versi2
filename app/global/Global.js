@@ -47,10 +47,20 @@ import { TouchableOpacity } from 'react-native-gesture-handler';
 //import ShdeuleProvider from '../db/shedulesProvider';
 //import Schedule_local from '../db/shedules';
 import DATA_SCHEDULE from '../db/dataScheduleManager';
-var encrymd5 = require('crypto-js');
-export default class Global {
 
+//REDUX
+import {connect} from 'react-redux';
+import ACTION_TYPE from '../redux/actions/actions';
+
+var encrymd5 = require('crypto-js');
+export default class Global{
+ 
 };
+
+
+
+
+
 //setup
 export function setup() {
     //cekNetInfo();
@@ -520,6 +530,28 @@ export function generateSelectDokter(arry) {
     */
     return data;
 }
+//UPDATE REDUX DATA
+export function updateSelectSchedule(dataArray,scheduleSelect) {
+
+    let data = [];
+    for (var s = 0; s < dataArray.length; s++) {
+        if(dataArray[s].id == scheduleSelect.parentId){
+            dataArray[s].isSelect = scheduleSelect.isSelect;
+        }
+        for (var i = 0; i < dataArray[s].doctors.length; i++) {
+            if(dataArray[s].doctors[i].id == scheduleSelect.data.id){
+                dataArray[s].doctors[i].isSelect = scheduleSelect.data.isSelect;
+            }
+            if (dataArray[s].doctors[i].isSelect == 1) {
+                if (avaiableData(data, dataArray[s].doctors[i].id) == true) {
+                    data.push(dataArray[s].doctors[i].id)
+                }
+            }
+        }
+    }
+    console.log(data);
+    return data;
+}
 
 export function calcDistance(prevLatLng, newLatLng) {
     //const { prevLatLng } = this.state;
@@ -631,13 +663,13 @@ export function successLogutClear() {
 }
 
 //Distance()
-export function getDistance(value) {
+export function getDistance(value,userlocation=null) {
     //console.log("geo rs",value);
-    //console.log("geo user", user.getUserGeolocation());
-    if (user.getUserGeolocation() != null) {
+    //console.log("geo user", userlocation);
+    if (userlocation != null) {
         let geouser = {
-            latitude: user.getUserGeolocation().latitude,
-            longitude: user.getUserGeolocation().longitude
+            latitude: userlocation.latitude,
+            longitude: userlocation.longitude
         }
 
         // console.log("geo",geouser);
@@ -647,22 +679,8 @@ export function getDistance(value) {
         return distance;
         //}, 2000);
 
-    } else {
-        SYNCLoc(KEYS.KEY_G, KEYS.KEY_LAST_LOCATION).then(res => {
-            console.log("last location", res)
-            if (res) {
-                let geouser = {
-                    latitude: res.latitude,
-                    longitude: res.longitude
-                }
-
-                // console.log("geo",geouser);
-                let distance = calcDistance(geouser, value)
-                // setTimeout(() => {
-                // console.log("geo", distance);
-                return distance;
-            }
-        })
+    }else{
+        return null;
     }
 }
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -802,7 +820,60 @@ export async function Global_checkStatus(callback) {
     }
     //console.log("user", user.getData());
 }
+//REDUX
+export async function checkAttend(userattend,callback) {
+    let now = getDATENoW();
+    console.log("Global_checkStatus");
+    console.log("user", userattend)
+    console.log("date now", formateFullDateNumber(Date.now(), "YYYY-MM-DD HH:mm:ss"));
+    if (userattend.attend != null) {
 
+        let _in = userattend.attend.in ? userattend.attend.in.length : 0;
+        let _out = userattend.attend.out ? userattend.attend.out.length : 0;
+        console.log("inAttend", _in)
+        console.log("outAttend", _out)
+
+        if (_in > 5 && _out < 1) {
+            let datein = userattend.attend.in.slice(0, 10);
+            let loc = formateFullDateNumber(datein, "YYYY-MM-DD")
+            console.log("date", datein)
+            console.log("in", loc)
+            console.log("now", now)
+
+            if (loc == now) {
+                console.log("atten TODAY correct");
+
+                if(userattend.set_schedule.length>0){
+                    callback(Constant.ROLE_READYSTARTSCHEDULE);
+                }else{
+                    callback(
+                        Constant.ROLE_INSELECTSCHEDULE
+                    );
+                }
+            } else {
+                console.log("atten expired");
+                callback(Constant.ROLE_FINISHTODAY, true);
+            }
+
+        } else if (_in > 5 && _out > 5) {
+            let loc = formateFullDateNumber(user.getUserAttend().out.slice(0, 10), "YYYY-MM-DD")
+            if (loc == now) {
+                callback(Constant.ROLE_FINISHTODAY);
+            } else {
+                console.log("atten expired");
+                callback(Constant.ROLE_FINISHTODAY, true);
+            }
+            //return Constant.ROLE_FINISHTODAY;
+
+        } else if (_in < 1 && _out < 1) {
+            callback(Constant.ROLE_INLOGIN);
+            //return Constant.ROLE_FINISHTODAY;
+        }
+    } else {
+        callback(Constant.ROLE_INLOGIN)
+    }
+    //console.log("user", user.getData());
+}
 //reset session schedule
 export async function Global_resetShceduleSession(_calback = null) {
     return await getLocal(KEYS.KEY_SCHEDULE).then((res) => {
@@ -919,10 +990,11 @@ export async function GLOBAL_INITSCHEDULE_NOFORCE(_state) {
     console.log('GLOBAL_INITSCHEDULE_NOFORCE', datajson);
 }
 //REQ SCHEDULE WITH TIMEOUT
-export function GLOBAL_INITSCHEDULE(_state) {
+export function GLOBAL_INITSCHEDULE(userdata,_state) {
     let data = new FormData();
     let didTimeOut = false;
-    data.append("user_id", user.getUsId());
+    console.log("USER",userdata)
+    data.append("user_id", userdata.profile_id);
     let _url = Constant.RESTLINK + restlist().req_schdule;
     console.log("GLOBAL_INITSCHEDULE", _url);
     console.log("GLOBAL_INITSCHEDULE Form", data);
@@ -962,169 +1034,170 @@ export function GLOBAL_INITSCHEDULE(_state) {
             //console.log('req schedule', res);
             if (res.api_message == 'success') {
                 /**/
-                let tempres = Object.assign({}, res);
-                tempres.dateCreate = formateFullDateNumber(Date.now(), "YYYY-MM-DD")
-                // SYNCLoc(KEYS.KEY_D, KEYS.KEY_SCHEDULE);
-                //LEMARI_GLOBAL_LOC([tempres], KEYS.KEY_SCHEDULE_SERVER);
+                ProcessScheduleData(userdata,res,_state);;
+                // let tempres = Object.assign({}, res);
+                // tempres.dateCreate = formateFullDateNumber(Date.now(), "YYYY-MM-DD")
+                // // SYNCLoc(KEYS.KEY_D, KEYS.KEY_SCHEDULE);
+                // //LEMARI_GLOBAL_LOC([tempres], KEYS.KEY_SCHEDULE_SERVER);
 
 
-                let ids = getDokterIdTab(res.list_doctor_set_today);
-                let temp = res.visit_schedule.slice(0)
-                let completeids = getDokterIdTab(temp);
-                let tempset = res.set_schedule.slice(0)
-                let meetDokter = res.list_doctor_set_this_month.slice(0)
+                // let ids = getDokterIdTab(res.list_doctor_set_today);
+                // let temp = res.visit_schedule.slice(0)
+                // let completeids = getDokterIdTab(temp);
+                // let tempset = res.set_schedule.slice(0)
+                // let meetDokter = res.list_doctor_set_this_month.slice(0)
 
-                let setVisitMonth = rebuildSchedule(temp);
-                let set_schedule_rebuild = rebuildSchedule(tempset);
-                let serverSet = getDokterIdTabBySetSchedule(tempset);
-                //find list schedule today
-                console.log("set ", serverSet);
-                //let setVisitToday = getListTargetBK(setVisitMonth, ids);
-                let setVisitToday = getListTargetCompleteMonth(setVisitMonth, serverSet);
-                //console.log('visit schedule', setVisitMonth);
-                //console.log('id today ', ids);
-                //console.log('id yesterday ', completeids);
-                //console.log('target visit today ', setVisitToday);
-                //console.log('selectschedule ', set_schedule_rebuild);
-                //console.log('meetDokter ', meetDokter);
-                //let temp2 = res.visit_schedule.slice(0)
-                //let setUnVisitToday = getListUnTarget(temp2, ids);
-                // console.log('untarget',setUnVisitToday)
-                TargetSelect().then(resSelect => {
-                    console.log('init off select', resSelect)
-                    if (resSelect && resSelect.length == 0) {
-                        _saveSelectSchedule(res.set_schedule_rebuild)
-                        //_state(true);
-                    } else {
-                        //_state(true);
-                    }
-                }).then(() => {
-                    DATA_SCHEDULE.updateDataSchedule(res);
-                    console.log("GLOBAL INITSCHEDULE")
-                    SYNCLoc_CORE_SET(res);
+                // let setVisitMonth = rebuildSchedule(temp);
+                // let set_schedule_rebuild = rebuildSchedule(tempset);
+                // let serverSet = getDokterIdTabBySetSchedule(tempset);
+                // //find list schedule today
+                // console.log("set ", serverSet);
+                // //let setVisitToday = getListTargetBK(setVisitMonth, ids);
+                // let setVisitToday = getListTargetCompleteMonth(setVisitMonth, serverSet);
+                // //console.log('visit schedule', setVisitMonth);
+                // //console.log('id today ', ids);
+                // //console.log('id yesterday ', completeids);
+                // //console.log('target visit today ', setVisitToday);
+                // //console.log('selectschedule ', set_schedule_rebuild);
+                // //console.log('meetDokter ', meetDokter);
+                // //let temp2 = res.visit_schedule.slice(0)
+                // //let setUnVisitToday = getListUnTarget(temp2, ids);
+                // // console.log('untarget',setUnVisitToday)
+                // TargetSelect().then(resSelect => {
+                //     console.log('init off select', resSelect)
+                //     if (resSelect && resSelect.length == 0) {
+                //         _saveSelectSchedule(res.set_schedule_rebuild)
+                //         //_state(true);
+                //     } else {
+                //         //_state(true);
+                //     }
+                // }).then(() => {
+                //     DATA_SCHEDULE.updateDataSchedule(res);
+                //     console.log("GLOBAL INITSCHEDULE")
+                //     SYNCLoc_CORE_SET(res);
 
-                    //return;
-                    _state(true, res);
-                    /* SYNCLoc(KEYS.KEY_G, KEYS.KEY_SCHEDULE).then(resLocal => {
-                        console.log('LOCAL COMPARE WITH SERVER SCHEDULE', resLocal);
-                        if (resLocal) {
+                //     //return;
+                //     _state(true, res);
+                //     /* SYNCLoc(KEYS.KEY_G, KEYS.KEY_SCHEDULE).then(resLocal => {
+                //         console.log('LOCAL COMPARE WITH SERVER SCHEDULE', resLocal);
+                //         if (resLocal) {
 
-                            let createNew = false;
-                            // && isTODAY(res.attend.in) == true
-                            if (res.attend.in) {
-                                if (res.attend.in.length > 5) {
-                                    user.updateUserAttend(res.attend);
-                                }
-                            }
-                            if (res.attend.out) {
-                                if (res.attend.out.length > 5) {
-                                    user.updateUserAttend(res.attend);
-                                }
-                            }
-                            user.updateUserAttend(res.attend);
-                            console.log('untarget', user.getUserAttend())
+                //             let createNew = false;
+                //             // && isTODAY(res.attend.in) == true
+                //             if (res.attend.in) {
+                //                 if (res.attend.in.length > 5) {
+                //                     user.updateUserAttend(res.attend);
+                //                 }
+                //             }
+                //             if (res.attend.out) {
+                //                 if (res.attend.out.length > 5) {
+                //                     user.updateUserAttend(res.attend);
+                //                 }
+                //             }
+                //             user.updateUserAttend(res.attend);
+                //             console.log('untarget', user.getUserAttend())
 
-                            if (tempres.attend.in && tempres.attend.in.length > 5 && tempres.attend.out && tempres.attend.out.length > 5) {
+                //             if (tempres.attend.in && tempres.attend.in.length > 5 && tempres.attend.out && tempres.attend.out.length > 5) {
 
-                                let now = formateFullDateNumber(Date.now(), "YYYY-MM-DD");
-                                let datein = res.attend.out.slice(0, 10);
-                                let loc = formateFullDateNumber(datein, "YYYY-MM-DD");
-                                if (now != loc) {
-                                    console.log("NEW GET FROM SERVER")
-                                    resLocal[0].visit_schedule = setVisitToday;
-                                    resLocal[0].set_schedule = set_schedule_rebuild;
-                                    resLocal[0].list_doctor_set_this_month = meetDokter;
-                                    resLocal[0].list_doctor_set_today = ids;
-                                    console.log('SYNC LOCAL COMPARE', resLocal[0]);
-                                    Constant.SCHEDULE_DATA = resLocal.slice(0)
-                                    SYNCLoc(KEYS.KEY_D, KEYS.KEY_SCHEDULE).then(res => {
-                                        if (res) {
-                                            SYNCLoc(KEYS.KEY_A, KEYS.KEY_SCHEDULE, [resLocal[0]]).then(res => {
-                                                _state(res, [resLocal[0]]);
-                                            })
+                //                 let now = formateFullDateNumber(Date.now(), "YYYY-MM-DD");
+                //                 let datein = res.attend.out.slice(0, 10);
+                //                 let loc = formateFullDateNumber(datein, "YYYY-MM-DD");
+                //                 if (now != loc) {
+                //                     console.log("NEW GET FROM SERVER")
+                //                     resLocal[0].visit_schedule = setVisitToday;
+                //                     resLocal[0].set_schedule = set_schedule_rebuild;
+                //                     resLocal[0].list_doctor_set_this_month = meetDokter;
+                //                     resLocal[0].list_doctor_set_today = ids;
+                //                     console.log('SYNC LOCAL COMPARE', resLocal[0]);
+                //                     Constant.SCHEDULE_DATA = resLocal.slice(0)
+                //                     SYNCLoc(KEYS.KEY_D, KEYS.KEY_SCHEDULE).then(res => {
+                //                         if (res) {
+                //                             SYNCLoc(KEYS.KEY_A, KEYS.KEY_SCHEDULE, [resLocal[0]]).then(res => {
+                //                                 _state(res, [resLocal[0]]);
+                //                             })
 
-                                            // _state(res);
-                                        }
+                //                             // _state(res);
+                //                         }
 
-                                    });
-
-
-                                } else {
-                                    console.log("UPDATE GET FROM SERVER")
-                                    resLocal[0].visit_schedule = setVisitToday;
-                                    resLocal[0].set_schedule = set_schedule_rebuild;
-                                    resLocal[0].list_doctor_set_this_month = meetDokter;
-                                    resLocal[0].list_doctor_set_today = ids;
-                                    TargetSelect().then(resSelect => {
-                                        console.log('init off select', resSelect)
-                                        if (resLocal) {
-                                            if (resLocal.length > 0) {
-                                                _saveSelectSchedule(res.list_doctor_set_today)
-                                            }
-
-                                        } else {
-                                            _saveSelectSchedule(res.list_doctor_set_today)
-                                        }
-                                    }).then(() => {
-                                        console.log('UPDATE GET FROM SERVER_SYNC LOCAL COMPARE', resLocal[0]);
-                                        let tempData = [...resLocal[0]];
-                                        SYNCLoc(KEYS.KEY_D, KEYS.KEY_SCHEDULE).then(res => {
-                                            if (res) {
-                                                SYNCLoc(KEYS.KEY_A, KEYS.KEY_SCHEDULE, [tempData]).then(res => {
-                                                    _state(res, [tempData]);
-                                                })
-
-                                                // _state(res);
-                                            }
-
-                                        });
-                                    })
-                                }
-
-                            } else {
-                                console.log("CONTINUES GET FROM SERVER", resLocal[0])
-                                resLocal[0].visit_schedule = setVisitToday;
-                                resLocal[0].set_schedule = set_schedule_rebuild;
-                                resLocal[0].list_doctor_set_this_month = meetDokter;
-                                resLocal[0].list_doctor_set_today = ids;
-                                TargetSelect().then(resSelect => {
-                                    console.log('init off select', resSelect)
-                                    if (resLocal) {
-                                        if (resLocal.length > 0) {
-                                            _saveSelectSchedule(res.list_doctor_set_today)
-                                        }
-
-                                    } else {
-                                        _saveSelectSchedule(res.list_doctor_set_today)
-                                    }
-                                })
-                                console.log(' CONTINUES GET FROM SERVER_SYNC LOCAL COMPARE', resLocal[0]);
-                                let tempData = resLocal.slice(0);
-                                console.log('data', tempData);
-                                SYNCLoc(KEYS.KEY_D, KEYS.KEY_SCHEDULE).then(res => {
-                                    if (res) {
-                                        SYNCLoc(KEYS.KEY_A, KEYS.KEY_SCHEDULE, tempData).then(res => {
-                                            _state(res, tempData);
-                                        })
-
-                                        // _state(res);
-                                    }
-
-                                });
+                //                     });
 
 
-                            }
+                //                 } else {
+                //                     console.log("UPDATE GET FROM SERVER")
+                //                     resLocal[0].visit_schedule = setVisitToday;
+                //                     resLocal[0].set_schedule = set_schedule_rebuild;
+                //                     resLocal[0].list_doctor_set_this_month = meetDokter;
+                //                     resLocal[0].list_doctor_set_today = ids;
+                //                     TargetSelect().then(resSelect => {
+                //                         console.log('init off select', resSelect)
+                //                         if (resLocal) {
+                //                             if (resLocal.length > 0) {
+                //                                 _saveSelectSchedule(res.list_doctor_set_today)
+                //                             }
+
+                //                         } else {
+                //                             _saveSelectSchedule(res.list_doctor_set_today)
+                //                         }
+                //                     }).then(() => {
+                //                         console.log('UPDATE GET FROM SERVER_SYNC LOCAL COMPARE', resLocal[0]);
+                //                         let tempData = [...resLocal[0]];
+                //                         SYNCLoc(KEYS.KEY_D, KEYS.KEY_SCHEDULE).then(res => {
+                //                             if (res) {
+                //                                 SYNCLoc(KEYS.KEY_A, KEYS.KEY_SCHEDULE, [tempData]).then(res => {
+                //                                     _state(res, [tempData]);
+                //                                 })
+
+                //                                 // _state(res);
+                //                             }
+
+                //                         });
+                //                     })
+                //                 }
+
+                //             } else {
+                //                 console.log("CONTINUES GET FROM SERVER", resLocal[0])
+                //                 resLocal[0].visit_schedule = setVisitToday;
+                //                 resLocal[0].set_schedule = set_schedule_rebuild;
+                //                 resLocal[0].list_doctor_set_this_month = meetDokter;
+                //                 resLocal[0].list_doctor_set_today = ids;
+                //                 TargetSelect().then(resSelect => {
+                //                     console.log('init off select', resSelect)
+                //                     if (resLocal) {
+                //                         if (resLocal.length > 0) {
+                //                             _saveSelectSchedule(res.list_doctor_set_today)
+                //                         }
+
+                //                     } else {
+                //                         _saveSelectSchedule(res.list_doctor_set_today)
+                //                     }
+                //                 })
+                //                 console.log(' CONTINUES GET FROM SERVER_SYNC LOCAL COMPARE', resLocal[0]);
+                //                 let tempData = resLocal.slice(0);
+                //                 console.log('data', tempData);
+                //                 SYNCLoc(KEYS.KEY_D, KEYS.KEY_SCHEDULE).then(res => {
+                //                     if (res) {
+                //                         SYNCLoc(KEYS.KEY_A, KEYS.KEY_SCHEDULE, tempData).then(res => {
+                //                             _state(res, tempData);
+                //                         })
+
+                //                         // _state(res);
+                //                     }
+
+                //                 });
 
 
-                        } else {
-                            console.log('LOCAL NOT FOUND ', [tempres]);
-                            user.updateUserAttend(tempres.attend);
-                            SYNCLoc(KEYS.KEY_A, KEYS.KEY_SCHEDULE, [tempres]).then(() => {
-                                _state(true, [tempres]);
-                            });
-                        }
-                    });*/
-                })
+                //             }
+
+
+                //         } else {
+                //             console.log('LOCAL NOT FOUND ', [tempres]);
+                //             user.updateUserAttend(tempres.attend);
+                //             SYNCLoc(KEYS.KEY_A, KEYS.KEY_SCHEDULE, [tempres]).then(() => {
+                //                 _state(true, [tempres]);
+                //             });
+                //         }
+                //     });*/
+                // })
 
 
             } else {
@@ -1141,6 +1214,53 @@ export function GLOBAL_INITSCHEDULE(_state) {
     })
 
 }
+//SCHEDULE PROCESS 
+export function ProcessScheduleData(userdata,res,callback){
+    let tempres = Object.assign({}, res);
+    tempres.dateCreate = formateFullDateNumber(Date.now(), "YYYY-MM-DD")
+    // SYNCLoc(KEYS.KEY_D, KEYS.KEY_SCHEDULE);
+    //LEMARI_GLOBAL_LOC([tempres], KEYS.KEY_SCHEDULE_SERVER);
+
+
+    let ids = getDokterIdTab(tempres.list_doctor_set_today);
+    let temp = tempres.visit_schedule.slice(0)
+    let completeids = getDokterIdTab(temp);
+    let tempset = tempres.set_schedule.slice(0)
+    let meetDokter = tempres.list_doctor_set_this_month.slice(0)
+
+    let setVisitMonth = rebuildSchedule(temp);
+    let set_schedule_rebuild = rebuildSchedule(tempset);
+    let serverSet = getDokterIdTabBySetSchedule(tempset);
+    //find list schedule today
+    console.log("set ", serverSet);
+    //let setVisitToday = getListTargetBK(setVisitMonth, ids);
+    let setVisitToday = getListTargetCompleteMonth(setVisitMonth, serverSet);
+    //console.log('visit schedule', setVisitMonth);
+    //console.log('id today ', ids);
+    //console.log('id yesterday ', completeids);
+    //console.log('target visit today ', setVisitToday);
+    //console.log('selectschedule ', set_schedule_rebuild);
+    //console.log('meetDokter ', meetDokter);
+    //let temp2 = res.visit_schedule.slice(0)
+    //let setUnVisitToday = getListUnTarget(temp2, ids);
+    // console.log('untarget',setUnVisitToday)
+    TargetSelect().then(resSelect => {
+        console.log('init off select', resSelect)
+        if (resSelect && resSelect.length == 0) {
+            _saveSelectSchedule(res.set_schedule_rebuild)
+            //_state(true);
+        } else {
+            //_state(true);
+        }
+    }).then(() => {
+        DATA_SCHEDULE.updateDataSchedule(res);
+        console.log("GLOBAL INITSCHEDULE")
+        SYNCLoc_CORE_SET(res);
+
+        //return;
+        callback(true, res);
+    });
+}
 //IS TODAY
 export function isTODAY(params) {
     let now = formateFullDateNumber(Date.now(), "YYYY-MM-DD");
@@ -1154,109 +1274,112 @@ export function isTODAY(params) {
     }
 }
 //REQ SCHEDULE
-export async function Global_getreqSchedule(_state) {
+export async function Global_getreqSchedule(userdata,_state) {
     let isFirstLoad = true;
     let data = new FormData();
-    data.append("user_id", user.getUsId());
+    console.log(userdata)
+    data.append("user_id", userdata.profile_id);
     result = reqSchedule_FORCE(data).then((res) => {
         console.log('FORCE Global_getreqSchedule VISIT API RESULTH', res);
         if (res != undefined) {
             //console.log('req schedule', res);
             if (res.api_message == 'success') {
                 /**/
-                let tempres = Object.assign({}, res);
-                tempres.dateCreate = formateFullDateNumber(Date.now(), "YYYY-MM-DD")
-                // SYNCLoc(KEYS.KEY_D, KEYS.KEY_SCHEDULE);
-                //LEMARI_GLOBAL_LOC([tempres], KEYS.KEY_SCHEDULE_SERVER);
+                ProcessScheduleData(userdata,res,_state);
+                // let tempres = Object.assign({}, res);
+                // tempres.dateCreate = formateFullDateNumber(Date.now(), "YYYY-MM-DD")
+                // // SYNCLoc(KEYS.KEY_D, KEYS.KEY_SCHEDULE);
+                // //LEMARI_GLOBAL_LOC([tempres], KEYS.KEY_SCHEDULE_SERVER);
 
 
-                let completeids = getDokterIdTab(res.list_doctor_set_this_month)
-                let ids = getDokterIdTab(res.list_doctor_set_today);
-                let temp = res.visit_schedule.slice(0)
-                let tempset = res.set_schedule.slice(0)
-                let meetDokter = res.list_doctor_set_this_month.slice(0)
+                // let completeids = getDokterIdTab(res.list_doctor_set_this_month)
+                // let ids = getDokterIdTab(res.list_doctor_set_today);
+                // let temp = res.visit_schedule.slice(0)
+                // let tempset = res.set_schedule.slice(0)
+                // let meetDokter = res.list_doctor_set_this_month.slice(0)
 
-                let setVisitMonth = rebuildSchedule(temp);
-                let set_schedule_rebuild = rebuildSchedule(tempset);
-                //find list schedule today
-                //let setVisitToday = getListTargetBK(setVisitMonth, ids);
-                let setVisitToday = getListTargetCompleteMonth(setVisitMonth, completeids);
-                // console.log('visit schedule', setVisitMonth);
-                // console.log('id today ', ids);
-                //console.log('id yesterday ', completeids);
-                //console.log('target visit today ', setVisitToday);
-                //console.log('selectschedule ', set_schedule_rebuild);
-                //let temp2 = res.visit_schedule.slice(0)
-                //let setUnVisitToday = getListUnTarget(temp2, ids);
-                // console.log('untarget',setUnVisitToday)
-                //ABSEN
-                console.log('-------INIT ABSEN-------');
-                console.log('ATTEND BEFORE', user.getUserAttend())
-                console.log('ATTEND Server', tempres.attend)
+                // let setVisitMonth = rebuildSchedule(temp);
+                // let set_schedule_rebuild = rebuildSchedule(tempset);
+                // //find list schedule today
+                // //let setVisitToday = getListTargetBK(setVisitMonth, ids);
+                // let setVisitToday = getListTargetCompleteMonth(setVisitMonth, completeids);
+                // // console.log('visit schedule', setVisitMonth);
+                // // console.log('id today ', ids);
+                // //console.log('id yesterday ', completeids);
+                // //console.log('target visit today ', setVisitToday);
+                // //console.log('selectschedule ', set_schedule_rebuild);
+                // //let temp2 = res.visit_schedule.slice(0)
+                // //let setUnVisitToday = getListUnTarget(temp2, ids);
+                // // console.log('untarget',setUnVisitToday)
+                // //ABSEN
+                // console.log('-------INIT ABSEN-------');
+                // console.log('ATTEND BEFORE', userdata.profile_atten)
+                // console.log('ATTEND Server', tempres.attend)
 
-                if (tempres.attend.in) {
-                    if (user.getUserAttend().in.length < tempres.attend.in.length && tempres.attend.in.length > 5) {
-                        user.updateUserAttend(tempres.attend);
-                    }
-                }
-                if (tempres.attend.in && tempres.attend._out) {
-                    if (user.getUserAttend().out.length < tempres.attend.out.length && tempres.attend.out.length > 5) {
-                        user.updateUserAttend(tempres.attend);
-                    }
-                }
-                if (res.attend.out == null) {
-                    user.updateUserAttend(tempres.attend);
-                }
-                // user.updateUserAttend(tempres.attend);
-                console.log('ATTEND DONE', user.getUserAttend())
+                // if (tempres.attend.in) {
+                //     if (user.profile_atten.in.length < tempres.attend.in.length && tempres.attend.in.length > 5) {
+                //         user.profile_atten = tempres.attend;
+                //     }
+                // }
+                // if (tempres.attend.in && tempres.attend._out) {
+                //     if (user.profile_atten.out.length < tempres.attend.out.length && tempres.attend.out.length > 5) {
+                //         user.profile_atten = tempres.attend;
+                //     }
+                // }
+                // if (res.attend.out == null) {
+                //     user.profile_atten = tempres.attend;
+                // }
+                // // user.updateUserAttend(tempres.attend);
 
-                TargetSelect().then(resSelect => {
-                    console.log('init off select', resSelect)
-                    if (!resSelect) {
-                        _saveSelectSchedule(res.list_doctor_set_today)
-                    } else {
-                    }
-                }).then(() => {
-                    //DATA_SCHEDULE.updateDataSchedule(res);
-                    console.log("Global getreqshcedule")
-                    //let rescore = SYNCLoc_CORE_SET(res);
+                // console.log('ATTEND DONE', user.getUserAttend())
 
-                    //return;
-                    _state(true, res);
+                // TargetSelect().then(resSelect => {
+                //     console.log('init off select', resSelect)
+                //     if (!resSelect) {
+                //         _saveSelectSchedule(res.list_doctor_set_today)
+                //     } else {
+                //     }
+                // }).then(() => {
+                //     //DATA_SCHEDULE.updateDataSchedule(res);
+                //     console.log("Global getreqshcedule")
+                //     //let rescore = SYNCLoc_CORE_SET(res);
 
-                    //NEW METHOD
+                //     //return;
+                //     _state(true, res);
 
-                    //return;
-                    //OLD
-                    /*SYNCLoc(KEYS.KEY_G, KEYS.KEY_SCHEDULE).then(resLocal => {
-                        console.log('LOCAL COMPARE WITH SERVER SCHEDULE', resLocal);
-                        if (resLocal) {
-                            console.log('LOCAL COMPARE', resLocal[0]);
-                            let tempLocal = resLocal[0].slice(0);
-                            tempLocal.visit_schedule = setVisitToday;
-                            tempLocal.set_schedule = set_schedule_rebuild;
-                            tempLocal.list_doctor_set_this_month = meetDokter;
-                            console.log('LOCAL UPDATE', tempLocal);
-                            SYNCLoc(KEYS.KEY_D, KEYS.KEY_SCHEDULE).then(res => {
-                                if (res) {
-                                    SYNCLoc(KEYS.KEY_A, KEYS.KEY_SCHEDULE, [tempLocal]).then(res => {
-                                        _state(res, [tempLocal]);
-                                    })
+                //     //NEW METHOD
 
-                                    // _state(res);
-                                }
+                //     //return;
+                //     //OLD
+                //     /*SYNCLoc(KEYS.KEY_G, KEYS.KEY_SCHEDULE).then(resLocal => {
+                //         console.log('LOCAL COMPARE WITH SERVER SCHEDULE', resLocal);
+                //         if (resLocal) {
+                //             console.log('LOCAL COMPARE', resLocal[0]);
+                //             let tempLocal = resLocal[0].slice(0);
+                //             tempLocal.visit_schedule = setVisitToday;
+                //             tempLocal.set_schedule = set_schedule_rebuild;
+                //             tempLocal.list_doctor_set_this_month = meetDokter;
+                //             console.log('LOCAL UPDATE', tempLocal);
+                //             SYNCLoc(KEYS.KEY_D, KEYS.KEY_SCHEDULE).then(res => {
+                //                 if (res) {
+                //                     SYNCLoc(KEYS.KEY_A, KEYS.KEY_SCHEDULE, [tempLocal]).then(res => {
+                //                         _state(res, [tempLocal]);
+                //                     })
 
-                            });
+                //                     // _state(res);
+                //                 }
+
+                //             });
 
 
-                        } else {
-                            SYNCLoc(KEYS.KEY_A, KEYS.KEY_SCHEDULE, [tempres]).then(() => {
-                                _state(true, [tempres]);
-                            });
+                //         } else {
+                //             SYNCLoc(KEYS.KEY_A, KEYS.KEY_SCHEDULE, [tempres]).then(() => {
+                //                 _state(true, [tempres]);
+                //             });
 
-                        }
-                    });*/
-                })
+                //         }
+                //     });*/
+                // })
 
             } else {
                 _state(false);
@@ -2436,7 +2559,7 @@ export function getKeyAsyncName(key) {
 // NEW SYSTEM
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 export async function SYNCLoc_CORE_SET(data) {
-    console.log("SYNCLoc_CORE_SET ");
+    //console.log("SYNCLoc_CORE_SET ");
     let dataClone = Object.assign({}, data);
     let maxData = 100;
     //console.log("dataClone ", dataClone);
@@ -2472,7 +2595,7 @@ export async function SYNCLoc_CORE_SET(data) {
     }
     // SAVE DATA PAGING - DON't REPLACE
 
-    console.log("SYNCLoc_CORE_SET ", coredata);
+    //console.log("SYNCLoc_CORE_SET ", coredata);
     return coredata;
 
     return await SYNCLoc(KEYS.KEY_U, KEYS.KEY_SCHEDULE, coredata).then(res => {

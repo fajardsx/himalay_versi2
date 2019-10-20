@@ -22,7 +22,10 @@ import { getMonthSchedulerDoktor } from "../../global/dokter_manager";
 import HospitalCell_opt from "../../appcomponent/module_schedulecell/component/hospitalCell";
 import DoktorCell_opt from "../../appcomponent/module_schedulecell/component/doktorCell";
 import DATA_SCHEDULE from "../../db/dataScheduleManager";
-
+//REDUX
+import { connect } from 'react-redux';
+import ACTION_TYPE from "../../redux/actions/actions";
+import { moderateScale } from "../../styleapp/scaling";
 
 
 let dataDummy = [];
@@ -57,13 +60,13 @@ class HomeViewModel extends React.Component {
             searchinputText: "",
             KeyboardIsShow: false
         };
-        user.updateStatusRole(Constant.ROLE_INLOGIN);
-
+       // user.updateStatusRole(Constant.ROLE_INLOGIN);
+       // this.props.updateRole(Constant.ROLE_INLOGIN)
 
         that = this;
         // console.log(this.props);
     }
-    componentWillMount() {
+    UNSAFE_componentWillMount() {
 
         this.setPositionUSER()
     }
@@ -110,119 +113,88 @@ class HomeViewModel extends React.Component {
         }.bind(this));
     }
     inits = () => {
-        const { _role } = this.props.screenProps
-        //console.log("init ", _role)
+        let  _role  = this.props.userrole
+        console.log("home_viewmodel.js 116 => init ", _role)
+        console.log("home_viewmodel.js 116 => currentScheduleData ", this.props.currentScheduleData)
         //console.log("_dataschedule ", this.props.screenProps._dataschedule);
         //console.log("_selectschedule ", this.props.screenProps._selectschedule);
-        if (_role != Constant.ROLE_READYSTARTSCHEDULE) {
-            dataDummy = this.props.screenProps._dataschedule;
-            this.setState(
-                {
-                    data: dataDummy,
-                    MonthSchedule: this.props.screenProps._dataschedule,
-                    SelectSchedule: this.props.screenProps._selectschedule
-                },
-                () => {
+      
+            //dataDummy = this.props.currentScheduleData.visit_schedule;
+            // this.setState(
+            //     {
+            //         data: dataDummy,
+            //         MonthSchedule: this.props.screenProps._dataschedule,
+            //         SelectSchedule: this.props.screenProps._selectschedule
+            //     },
+            //     () => {
                     this.getTotalShedule();
                     this.sortByLocation();
-                }
-            );
-        } else {
-            dataDummy = this.props.screenProps._selectschedule;
-            this.setState(
-                {
-                    data: dataDummy,
-                    MonthSchedule: this.props.screenProps._dataschedule,
-                    SelectSchedule: this.props.screenProps._selectschedule
-                },
-                () => {
-                    this.getTotalShedule();
-                    this.sortByLocation();
-                }
-            );
-        }
+            //     }
+            // );
+        
     }
-    componentWillReceiveProps(prevProps) {
+    UNSAFE_componentWillReceiveProps(prevProps) {
         const { _role, _selectschedule } = this.props.screenProps;
-        //
-        //console.log("prev _selectschedule", prevProps.screenProps._selectschedule)
-        //console.log("prop _selectschedule", _selectschedule)
-        //console.log("get update schedule", _role)
+      
         console.log("prev schedule", prevProps.screenProps._role)
-        console.log("current role", this.state.currentRole)
-        //callToast("prev schedule"+ prevProps.screenProps._role);
+        console.log("home_viewmodel.js 151 => current role", this.props.userrole)
+ 
+        // if (this.state.currentRole != prevProps.screenProps._role) {
+        //     this.dashboard.onTargetToday();
+        //     // console.log('update role')
+        //     if (prevProps.screenProps._role == Constant.ROLE_READYSTARTSCHEDULE) {
+        //         this.setState(
+        //             {
+        //                 isLoading: true,
+        //                 currentRole: prevProps.screenProps._role
+        //             },
+        //             () => this.setToday()
+        //         );
+        //     }
+        //     if (prevProps.screenProps._role == Constant.ROLE_INLOGIN) {
+        //         this.setState(
+        //             {
+        //                 isLoading: true,
+        //                 currentRole: prevProps.screenProps._role
+        //             },
+        //             () => this.setToday()
+        //         );
+        //     }
+        //     if (prevProps.screenProps._role == Constant.ROLE_INSELECTSCHEDULE) {
+        //         NUMSELECT = 0;
+        //         this.setState(
+        //             {
+        //                 isLoading: true,
+        //                 currentRole: prevProps.screenProps._role
+        //             },
+        //             () => this.setToday()
+        //         );
+        //     }
+        //     if (prevProps.screenProps._role == Constant.ROLE_ADDDOCTORAGAIN) {
+        //         NUMSELECT = 0;
+        //         this.setState(
+        //             {
+        //                 // isLoading: true,
+        //                 currentRole: prevProps.screenProps._role
+        //             }
 
-        // if (_role != Constant.ROLE_READYSTARTSCHEDULE) {
-        //dataDummy = this.props.screenProps._dataschedule.slice(0);
-        //} else {
-        if (this.state.currentRole != prevProps.screenProps._role) {
-            this.dashboard.onTargetToday();
-            // console.log('update role')
-            if (prevProps.screenProps._role == Constant.ROLE_READYSTARTSCHEDULE) {
-                this.setState(
-                    {
-                        isLoading: true,
-                        currentRole: prevProps.screenProps._role
-                    },
-                    () => this.setToday()
-                );
-            }
-            if (prevProps.screenProps._role == Constant.ROLE_INLOGIN) {
-                this.setState(
-                    {
-                        isLoading: true,
-                        currentRole: prevProps.screenProps._role
-                    },
-                    () => this.setToday()
-                );
-            }
-            if (prevProps.screenProps._role == Constant.ROLE_INSELECTSCHEDULE) {
-                NUMSELECT = 0;
-                this.setState(
-                    {
-                        isLoading: true,
-                        currentRole: prevProps.screenProps._role
-                    },
-                    () => this.setToday()
-                );
-            }
-            if (prevProps.screenProps._role == Constant.ROLE_ADDDOCTORAGAIN) {
-                NUMSELECT = 0;
-                this.setState(
-                    {
-                        // isLoading: true,
-                        currentRole: prevProps.screenProps._role
-                    }
-
-                );
-            }
-            if (prevProps.screenProps._role == Constant.ROLE_FINISHTODAY) {
-                this.setState(
-                    {
-                        isLoading: true,
-                        currentRole: prevProps.screenProps._role
-                    },
-                    () => this.setToday()
-                );
-            }
-            if (prevProps.screenProps._role == 3 && this.state.currentRole == 4) {
-                this.onCancelAgainSchedule()
-            }
-        }
+        //         );
+        //     }
+        //     if (prevProps.screenProps._role == Constant.ROLE_FINISHTODAY) {
+        //         this.setState(
+        //             {
+        //                 isLoading: true,
+        //                 currentRole: prevProps.screenProps._role
+        //             },
+        //             () => this.setToday()
+        //         );
+        //     }
+        //     if (prevProps.screenProps._role == 3 && this.state.currentRole == 4) {
+        //         this.onCancelAgainSchedule()
+        //     }
+        // }
 
 
-        if (dataDummy.length > 0 && this.state.data.length == 0) {
-            // console.log("_dataschedule ", this.props.screenProps._dataschedule);
-            ///  console.log("_selectschedule ", this.props.screenProps._selectschedule);
-            /*this.setState({
-                data: dataDummy,
-                MonthSchedule: this.props.screenProps._dataschedule,
-                SelectSchedule: this.props.screenProps._selectschedule
-            }, () => {
-                this.getTotalShedule();
-                this.sortByLocation();
-            });*/
-        }
 
     }
     componentWillUnmount() {
@@ -243,7 +215,9 @@ class HomeViewModel extends React.Component {
                     longitude
                 };
                 // console.log("cordinate : ", newCoordinate);
+                this.props.updateUserLocation(newCoordinate)
                 user.updateUserGeolocation(newCoordinate, false);
+               
                 this.setState({
                     myposition: newCoordinate
                 })
@@ -304,27 +278,7 @@ class HomeViewModel extends React.Component {
                 })
             })
         }
-
-
     }
-    //INIT REFRESH
-    /*initRefresh(){
-       if (this.state.currentRole == Constant.ROLE_READYSTARTSCHEDULE) {
-            this.countdownAutoRefresh()
-      } else {
-            if (this.callRefreshCountdown) {
-                clearTimeout(this.callRefreshCountdown);
-            }
-       }
-    }
-     initRefreshServer(){
-       
-         if (this.callConnectServer) {
-             clearTimeout(this.callConnectServer);
-         }
-         this.countdownConnectServer();
-
-    }*/
     ///////
     setToday = () => {
         console.log("SET TODAY");
@@ -333,7 +287,7 @@ class HomeViewModel extends React.Component {
         //  console.log("_current  ", this.state.currentRole);
 
         //this.initRefresh();
-        if (this.state.currentRole == Constant.ROLE_INLOGIN) {
+        if (this.props.userrole == Constant.ROLE_INLOGIN) {
             dataDummy = this.props.screenProps._dataschedule;
             this.initToday();
         } else {
@@ -391,11 +345,12 @@ class HomeViewModel extends React.Component {
 
     async getTotalShedule() {
         //console.log("current role",user.getStatusRole())
-        let _shecduleData = this.state.data;
+        console.log("process getTotalSchedule")
+        let _shecduleData = this.props.currentScheduleData.visit_schedule;
         // console.log('total', this.state.data);
-        let _monthSchedule = this.state.MonthSchedule;
+        let _monthSchedule = this.props.currentScheduleData.visit_schedule;
 
-        console.log('month', this.state.MonthSchedule);
+        console.log('month', _monthSchedule);
         let shceduleList = 0;
         let todayList = 0;
         let listDokter = [];
@@ -429,22 +384,7 @@ class HomeViewModel extends React.Component {
                     })
                 });
             }
-            // console.log("listSelectDokter", listSelectDokter);
-
             NUMSELECT = listSelectDokter.length;
-            /* for (var i = 0; i < _shecdule.length; i++) {
-                 for (var j = 0; j < _shecdule[i].doctors.length; j++) {
-                         //shceduleList++;
-                         if (this.props.screenProps._role != Constant.ROLE_READYSTARTSCHEDULE ){
-                             if (_shecdule[i].doctors[j].isSelect == 1) {
-                                 todayList++;
-                                 if (listSelectDokter.find(doktor => doktor.id === _shecdule[i].doctors[j].id) == undefined) {
-                                     listSelectDokter.push(_shecdule[i].doctors[j])
-                                 }
-                             }
-                         }    
-                 }
-             }*/
         }
 
         if (this.state.SelectSchedule) {
@@ -467,20 +407,6 @@ class HomeViewModel extends React.Component {
                         }
                     })
                 });
-                //console.log("ROLE_READYSTARTSCHEDULE select schedule from getotalschedule() ",_shecduleSelectData)
-                /*for (var i = 0; i < _shecduleSelectData.length; i++) {
-
-                    for (var j = 0; j < _shecduleSelectData[i].doctors.length; j++) {
-
-                        todayList++;
-                        if (listSelectDokter.find(doktor => doktor.id === _shecduleSelectData[i].doctors[j].id) == undefined) {
-                            _shecduleSelectData[i].doctors[j].created_at = formateFullDateNumber(Date.now(), "YYYY-MM-DD HH:MM:SS")
-                            listSelectDokter.push(_shecduleSelectData[i].doctors[j])
-                        }
-                    }
-                }*/
-
-
             } else {
                 let _shecduleSelectData = this.state.SelectSchedule;
                 // console.log("_shecduleSelectData", _shecduleSelectData);
@@ -500,17 +426,6 @@ class HomeViewModel extends React.Component {
                             }
                         })
                     });
-                    /*for (var i = 0; i < _shecduleSelectData.length; i++) {
-
-                        for (var j = 0; j < _shecduleSelectData[i].doctors.length; j++) {
-
-                            todayList++;
-                            if (listSelectDokter.find(doktor => doktor.id === _shecduleSelectData[i].doctors[j].id) == undefined) {
-                                _shecduleSelectData[i].doctors[j].created_at = formateFullDateNumber(Date.now(),"YYYY-MM-DD HH:MM:SS")
-                                listSelectDokter.push(_shecduleSelectData[i].doctors[j])
-                            }
-                        }
-                    }*/
                 }
             }
         } else {
@@ -606,50 +521,9 @@ class HomeViewModel extends React.Component {
                 } else {
                     callToast("Doctor Location id not found");
                 }
-
-                /*_cell[i].forEach((data, index) => {
-                    let countSelectDokter = 0;
-                   
-                    data.dataHospital.doctors.map((res, index) => {
-                        if (res.id == id.listid) {
-                            res.isSelect = id.isSelect;
-                        }
-                        if (res.isSelect == 1) {
-                            countSelectDokter += 1;
-                        }
-                    })
-    
-                    if (countSelectDokter == data.dataHospital.doctors.length) {
-                        data.dataHospital.isSelect = 1;
-                    } else {
-                        data.dataHospital.isSelect = 0;
-                    }
-                })*/
-                // }
             }
 
-
-            /*for (var s = 0; s < _cell.length; s++) {
-                let countSelectDokter = 0;
-                for (var i = 0; i < _cell[s].doctors.length;i++){
-                    if (_cell[s].doctors[i].id == id.listid) {
-                        _cell[s].doctors[i].isSelect = id.isSelect;
-                    }
-    
-                    //is select
-                    if (_cell[s].doctors[i].isSelect == 1){
-                        countSelectDokter++;
-                    }
-    
-                }
-                console.log("dokter select",countSelectDokter)
-                if (countSelectDokter == _cell[s].doctors.length) {
-                    _cell[s].isSelect = 1;
-                } else {
-                    _cell[s].isSelect = 0;
-                }
-            }*/
-            this.props.screenProps._updateReviewSchedule(data);
+            this.props.screenProps._updateReviewSchedule(id);
             let _convertData = [];
             for (var i = 0; i < _cell.length; i++) {
                 _cell[i].map(res => {
@@ -694,7 +568,8 @@ class HomeViewModel extends React.Component {
             convertDataState: []
         }, () => {
             user.updateStatusRole(Constant.ROLE_ADDDOCTORAGAIN)
-            this.props.screenProps._onUpdateRole(Constant.ROLE_ADDDOCTORAGAIN);
+            this.props.updateRole(Constant.ROLE_ADDDOCTORAGAIN)
+            //this.props.screenProps._onUpdateRole(Constant.ROLE_ADDDOCTORAGAIN);
             this.onCompareDokter();
         });
     }
@@ -704,6 +579,7 @@ class HomeViewModel extends React.Component {
         }
         this.setState({ isLoading: true });
         user.updateStatusRole(Constant.ROLE_READYSTARTSCHEDULE)
+        this.props.updateRole(Constant.ROLE_READYSTARTSCHEDULE)
         this.props.screenProps._onUpdateRole(Constant.ROLE_READYSTARTSCHEDULE);
 
         this.setState({
@@ -794,22 +670,6 @@ class HomeViewModel extends React.Component {
                     }
 
                 });
-
-                //  console.log("for sectionlist ", convertData);
-                //distanceCell.push()
-                /*distanceCell.push(<ScheduleCell_opt
-                    key={index}
-                    userrole={this.props.screenProps._role}
-                    parentid={index}
-                    dataSelect={this.state.dataSelect}
-                    dataSchedule={datas}
-                    checkDokterCallback={this._onCheckHospitalByDoktor.bind(this)}
-                    checkHospitalCallback={this._onCheckDoktorByHospital.bind(this)}
-                    onViewDetail={this.onOpenDocterDetail.bind(this)}
-                    onOpenFeedback={this._onFeedBackOpen.bind(this)}
-                    onNotAvaiable={this._onNotAvaiable.bind(this)}
-                    onMax={_max}
-                />)*/
             })
             return distanceCell;
         } else {
@@ -852,36 +712,7 @@ class HomeViewModel extends React.Component {
         this.setPositionUSER();
         //this.refs.homeheader._refreshSyncCount();
         if (_role != Constant.ROLE_ADDDOCTORAGAIN) {
-            /*SYNCLoc(KEYS.KEY_G,KEYS.KEY_SCHEDULE).then(resdata=>{
-                let res = resdata[0];
-                console.log("refressh Get SCHEDULE", res)
-                if(res){
-                    that.setState({
-                        MonthSchedule: res.visit_schedule,
-                        SelectSchedule: res.set_schedule
-                    }, () => {
-                        //that._checkStatus();
 
-                        if (_role != Constant.ROLE_READYSTARTSCHEDULE) {
-                            dataDummy = res.visit_schedule.slice(0);
-                        } else {
-                            dataDummy = res.set_schedule.slice(0);
-                        }
-                        that.setState({
-                            data: dataDummy,
-                            convertDataState: [],
-                        }, () => {
-                            //that.getTotalShedule();
-                            that.sortByLocation()
-                        })
-                    })
-                } else{
-                    that.setState({
-                        isLoading: false,
-                        isRefresh: false
-                    });
-                }
-            })*/
             this.props.screenProps._reqSchedule().then(res => {
                 console.log("refressh Get SCHEDULE", res)
 
@@ -919,8 +750,8 @@ class HomeViewModel extends React.Component {
     }
     //
     sortByLocation() {
-        const { _role } = this.props.screenProps;
-        //  console.log("ROLE sortByLocation ", _role);
+        const  _role  = this.props.userrole;
+      console.log("Process sortByLocation ");
         if (_role == Constant.ROLE_READYSTARTSCHEDULE || _role == Constant.ROLE_FINISHTODAY) {
 
             TargetSelect().then(resSelect => {
@@ -948,12 +779,12 @@ class HomeViewModel extends React.Component {
 
             })
         } else {
-            this.filterLocation(this.state.data)
+            this.filterLocation(this.props.currentScheduleData.visit_schedule)
         }
     }
     filterLocation(_monthSchedule) {
-        //   console.log('sort', _monthSchedule);
-        const { _role } = this.props.screenProps;
+        console.log('sort', _monthSchedule);
+        const _role = this.props.userrole;
         this.setState({
             convertDataState: []
             //isLoading: false
@@ -963,6 +794,9 @@ class HomeViewModel extends React.Component {
         let _convertData = [];
         let getLocation = true;
         //CCONVERT TO SELF FORMAT
+        if(!_monthSchedule){
+            return;
+        }
         _monthSchedule.map(rs => {
             //console.log(rs);
             //100m
@@ -986,13 +820,13 @@ class HomeViewModel extends React.Component {
             let jarak = getDistance({
                 latitude: rsLat,
                 longitude: rsLng
-            });
+            },this.props.userlocation);
 
             let isLong = "";
             let jrkTxt = "";
             let rsnear = false;
 
-            //console.log(Constant.MAX_DISTANCE)
+           //console.log(rsLat+","+rsLng)
             //console.log(Math.round(jarak))
             // jarak=undefined;
 
@@ -1027,7 +861,7 @@ class HomeViewModel extends React.Component {
         groupByid.sort(function (a, b) {
             return a.jarak - b.jarak;
         })
-        //   console.log('group ', groupByid);
+       console.log('group ', groupByid);
 
 
 
@@ -1300,7 +1134,7 @@ class HomeViewModel extends React.Component {
     }
     //SEARCH PROCESS
     addSearch() {
-        const { _role } = this.props.screenProps;
+        const _role  = this.props.userrole;
         if (_role == Constant.ROLE_ADDDOCTORAGAIN || _role == Constant.ROLE_INSELECTSCHEDULE) {
             return <View style={styles.inputContainer}>
                 <TextInput underlineColorAndroid="rgba(0,0,0,0)"
@@ -1320,7 +1154,7 @@ class HomeViewModel extends React.Component {
                     style={{
                         paddingRight: convertWidth('2%')
                     }}
-                    size={convertWidth('2.5%')} color={Constant.COLOR_GRAY2}
+                    size={convertWidth('2%')} color={Constant.COLOR_GRAY2}
                 />
             </View>
         } else {
@@ -1414,26 +1248,7 @@ class HomeViewModel extends React.Component {
                 }
 
             </View>
-            {
-                /*convertDataState &&
-                <SectionList
-                    extraData={this.state}
-                    sections={this.state.convertDataState}
-                    refreshing={true}
-                    renderItem={({ item, index, section }) => <DoktorCell_opt
-                        checkDokterCallback={this._onCheckHospitalByDoktor.bind(this)}
-                        dataDokter={item}
-                    />}
-                    renderSectionHeader={({ section: { parentdata } }) => (
-                        <HospitalCell_opt
-                            dataHospital={parentdata}
-                            checkDokterCallback={this._onCheckHospitalByDoktor.bind(this)}
-                        />
-                    )}
-                   
-                    keyExtractor={(item, index) => item + index}
-                />*/
-            }
+            
             {
                 this._loadercontent()
             }
@@ -1467,7 +1282,7 @@ class HomeViewModel extends React.Component {
                         _onCheckHospitalByDoktor={this._onCheckHospitalByDoktor.bind(this)}
                         checkDokterCallback={this._onCheckHospitalByDoktor.bind(this)}
                         key={index}
-                        userrole={_role}
+                        //userrole={this.props.userrole}
                         parentid={index}
                         areaid={item.area}
                         dataSelect={this.state.dataSelect}
@@ -1481,33 +1296,6 @@ class HomeViewModel extends React.Component {
                     keyExtractor={(item, index) => index.toString()}
                 />
             }
-
-            {
-                //isLoading == false &&
-                //this.SetScheduleCell2()
-
-            }
-
-            {/*
-            <ScrollView style={{ width: '100%', overflow: 'hidden'}}
-                contentContainerStyle={{ flexGrow: 1 }}
-                refreshControl={<RefreshControl
-                    refreshing={isRefresh}
-                    onRefresh={this._onRefresh.bind(this)}
-                />}
-
-                onScroll={(e) => this._onEndScroll(e)}
-                scrollEventThrottle={60}
-            >
-                {
-                    //isLoading == false &&
-                    this.SetScheduleCell2()
-                  
-                }
-              
-
-                <View style={{ height: 10 }} />
-            </ScrollView>*/}
 
             {
                 loadLoading == true && onlyLoading()
@@ -1524,7 +1312,7 @@ class HomeViewModel extends React.Component {
 const styles = StyleSheet.create({
     inputContainer: {
         flexDirection: 'row',
-        height: convertHeight('6%'),
+        height:  moderateScale(35),
         // marginBottom: 10,
         marginTop: convertHeight('5%'),
         //alignSelf: 'center',
@@ -1537,54 +1325,40 @@ const styles = StyleSheet.create({
     },
     input: {
         width: convertWidth('30%'),
+        //height: moderateScale(18),
         paddingLeft: 15,
         // backgroundColor : 'rgba(255,255,255,0.5)',
         color: '#000',
-        fontSize: convertWidth('1.5%'),
+        fontSize: moderateScale(12),
 
     },
 })
 /***/
-export default withNavigation(HomeViewModel);
+function mapStateToProps(state) {
+    return {
+        isFirst: state.firstopen,
+        userData: state.userData,
+        userlocation: state.userGeolocation,
+        scheduleData: state.scheduleData,
+        currentScheduleData: state.currentScheduleData,
+        userrole:state.userRole
+    };
+}
+function dispatchToProps(dispatch) {
+    return {
+        cleardata: () =>
+            dispatch({ type: ACTION_TYPE.CLEAR_DATA }),
+        updateRole: role =>
+            dispatch({ type: ACTION_TYPE.UPDATE_USERROLE,value:role }),
+        updateSchedule: schedule =>
+            dispatch({ type: ACTION_TYPE.UPDATE_SCHEDULE,value:schedule }),
+        updateUserLocation: data =>
+            dispatch({ type: ACTION_TYPE.UPDATE_USER_LOCATION,value:data })
+    };
+}
+export default connect(
+    mapStateToProps,
+    dispatchToProps,
+)( withNavigation(HomeViewModel));
 
-/*
-  <TouchableOpacity
-                    style={[Styleapp._buttons,Styleapp._bubble]}
-                    onPress={()=>this.onOpenSearchMap()}
-                >
-
-                <Text>Pick a Place</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                    style={[Styleapp._buttons, Styleapp._bubble]}
-                onPress={() => this.onOpenTrack()}
-                >
-                    <Text>List Places</Text>
-                </TouchableOpacity>
-            <TouchableOpacity
-                style={[Styleapp._buttons, Styleapp._bubble]}
-                onPress={() => this.onOpenSignature()}
-            >
-                <Text>Signature Page</Text>
-            </TouchableOpacity>
-
-
-            BK
-             <View style={{ width: '100%', marginTop: convertHeight("10%")}}
-
-            >
-                <Text style={{ fontFamily: Constant.POPPINS_REG,
-                    fontSize: convertWidth('1.8%'),
-                     color: "#000",
-                     marginLeft: convertWidth('3%'),
-                      paddingTop: convertHeight('6%'),
-                       paddingBottom: convertHeight('3%')}}>
-                       {dashboardDate(curretntimestamp())}
-                    </Text>
-                {isLoading == false && dataPage.length>0 && this.SetScheduleCell()}
-
-                <View style={{height:10}}/>
-            </View>
-*/
 

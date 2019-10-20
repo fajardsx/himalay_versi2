@@ -104,6 +104,7 @@ export async function kwkwkwkwkw(oncomplete) {
         if (filepermit['envi'] == 'yyy') {
             return callAlert("Warning", filepermit['envi_message']);
         }
+        
         Constant.rest_url = Constant.DEBUG_MODE == 1 ? filepermit['url_server_debug'] : filepermit['url_server'];
         oncomplete();
     }
