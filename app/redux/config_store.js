@@ -5,9 +5,9 @@ import AsyncStorage from '@react-native-community/async-storage';
 import reducer from './reducers/reducers';
 
 const presistConfig = {
+  timeout: null,
   key: 'root',
-  storage: AsyncStorage,
-  blacklist: ['serviceProvidedDetails'] // will not be persisted
+  storage: AsyncStorage
 };
 
 const presistreducer = persistReducer(presistConfig, reducer);

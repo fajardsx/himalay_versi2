@@ -60,8 +60,8 @@ class HomeViewModel extends React.Component {
             searchinputText: "",
             KeyboardIsShow: false
         };
-       // user.updateStatusRole(Constant.ROLE_INLOGIN);
-       // this.props.updateRole(Constant.ROLE_INLOGIN)
+        // user.updateStatusRole(Constant.ROLE_INLOGIN);
+        // this.props.updateRole(Constant.ROLE_INLOGIN)
 
         that = this;
         // console.log(this.props);
@@ -113,89 +113,94 @@ class HomeViewModel extends React.Component {
         }.bind(this));
     }
     inits = () => {
-        let  _role  = this.props.userrole
+        let _role = this.props.userrole
         console.log("home_viewmodel.js 116 => init ", _role)
         console.log("home_viewmodel.js 116 => currentScheduleData ", this.props.currentScheduleData)
         //console.log("_dataschedule ", this.props.screenProps._dataschedule);
         //console.log("_selectschedule ", this.props.screenProps._selectschedule);
-      
-            //dataDummy = this.props.currentScheduleData.visit_schedule;
-            // this.setState(
-            //     {
-            //         data: dataDummy,
-            //         MonthSchedule: this.props.screenProps._dataschedule,
-            //         SelectSchedule: this.props.screenProps._selectschedule
-            //     },
-            //     () => {
-                    this.getTotalShedule();
-                    this.sortByLocation();
-            //     }
-            // );
-        
+
+        //dataDummy = this.props.currentScheduleData.visit_schedule;
+        // this.setState(
+        //     {
+        //         data: dataDummy,
+        //         MonthSchedule: this.props.screenProps._dataschedule,
+        //         SelectSchedule: this.props.screenProps._selectschedule
+        //     },
+        //     () => {
+        this.getTotalShedule();
+        this.sortByLocation();
+        //     }
+        // );
+
     }
     UNSAFE_componentWillReceiveProps(prevProps) {
         const { _role, _selectschedule } = this.props.screenProps;
-      
+
         console.log("prev schedule", prevProps.screenProps._role)
         console.log("home_viewmodel.js 151 => current role", this.props.userrole)
- 
-        // if (this.state.currentRole != prevProps.screenProps._role) {
-        //     this.dashboard.onTargetToday();
-        //     // console.log('update role')
-        //     if (prevProps.screenProps._role == Constant.ROLE_READYSTARTSCHEDULE) {
-        //         this.setState(
-        //             {
-        //                 isLoading: true,
-        //                 currentRole: prevProps.screenProps._role
-        //             },
-        //             () => this.setToday()
-        //         );
-        //     }
-        //     if (prevProps.screenProps._role == Constant.ROLE_INLOGIN) {
-        //         this.setState(
-        //             {
-        //                 isLoading: true,
-        //                 currentRole: prevProps.screenProps._role
-        //             },
-        //             () => this.setToday()
-        //         );
-        //     }
-        //     if (prevProps.screenProps._role == Constant.ROLE_INSELECTSCHEDULE) {
-        //         NUMSELECT = 0;
-        //         this.setState(
-        //             {
-        //                 isLoading: true,
-        //                 currentRole: prevProps.screenProps._role
-        //             },
-        //             () => this.setToday()
-        //         );
-        //     }
-        //     if (prevProps.screenProps._role == Constant.ROLE_ADDDOCTORAGAIN) {
-        //         NUMSELECT = 0;
-        //         this.setState(
-        //             {
-        //                 // isLoading: true,
-        //                 currentRole: prevProps.screenProps._role
-        //             }
+        if (prevProps.screenProps._role == undefined) {
+            this.setState(
+                {
+                    isLoading: true,
+                    currentRole: this.props.userrole
+                },
+                () => this.setToday()
+            );
+        }
+        if (this.state.currentRole != prevProps.screenProps._role) {
+            this.dashboard.onTargetToday();
+            // console.log('update role')
+            if (prevProps.screenProps._role == Constant.ROLE_READYSTARTSCHEDULE) {
+                this.setState(
+                    {
+                        isLoading: true,
+                        currentRole: prevProps.screenProps._role
+                    },
+                    () => this.setToday()
+                );
+            }
+            if (prevProps.screenProps._role == Constant.ROLE_INLOGIN) {
+                this.setState(
+                    {
+                        isLoading: true,
+                        currentRole: prevProps.screenProps._role
+                    },
+                    () => this.setToday()
+                );
+            }
+            if (prevProps.screenProps._role == Constant.ROLE_INSELECTSCHEDULE) {
+                NUMSELECT = 0;
+                this.setState(
+                    {
+                        isLoading: true,
+                        currentRole: prevProps.screenProps._role
+                    },
+                    () => this.setToday()
+                );
+            }
+            if (prevProps.screenProps._role == Constant.ROLE_ADDDOCTORAGAIN) {
+                NUMSELECT = 0;
+                this.setState(
+                    {
+                        // isLoading: true,
+                        currentRole: prevProps.screenProps._role
+                    }
 
-        //         );
-        //     }
-        //     if (prevProps.screenProps._role == Constant.ROLE_FINISHTODAY) {
-        //         this.setState(
-        //             {
-        //                 isLoading: true,
-        //                 currentRole: prevProps.screenProps._role
-        //             },
-        //             () => this.setToday()
-        //         );
-        //     }
-        //     if (prevProps.screenProps._role == 3 && this.state.currentRole == 4) {
-        //         this.onCancelAgainSchedule()
-        //     }
-        // }
-
-
-
+                );
+            }
+            if (prevProps.screenProps._role == Constant.ROLE_FINISHTODAY) {
+                this.setState(
+                    {
+                        isLoading: true,
+                        currentRole: prevProps.screenProps._role
+                    },
+                    () => this.setToday()
+                );
+            }
+            if (prevProps.screenProps._role == 3 && this.state.currentRole == 4) {
+                this.onCancelAgainSchedule()
+            }
+        }
     }
     componentWillUnmount() {
         this.focuslistener.remove();
@@ -217,7 +222,7 @@ class HomeViewModel extends React.Component {
                 // console.log("cordinate : ", newCoordinate);
                 this.props.updateUserLocation(newCoordinate)
                 user.updateUserGeolocation(newCoordinate, false);
-               
+
                 this.setState({
                     myposition: newCoordinate
                 })
@@ -750,8 +755,8 @@ class HomeViewModel extends React.Component {
     }
     //
     sortByLocation() {
-        const  _role  = this.props.userrole;
-      console.log("Process sortByLocation ");
+        const _role = this.props.userrole;
+        console.log("Process sortByLocation ");
         if (_role == Constant.ROLE_READYSTARTSCHEDULE || _role == Constant.ROLE_FINISHTODAY) {
 
             TargetSelect().then(resSelect => {
@@ -779,7 +784,9 @@ class HomeViewModel extends React.Component {
 
             })
         } else {
-            this.filterLocation(this.props.currentScheduleData.visit_schedule)
+            if (this.props.currentScheduleData) {
+                this.filterLocation(this.props.currentScheduleData.visit_schedule)
+            }
         }
     }
     filterLocation(_monthSchedule) {
@@ -794,7 +801,7 @@ class HomeViewModel extends React.Component {
         let _convertData = [];
         let getLocation = true;
         //CCONVERT TO SELF FORMAT
-        if(!_monthSchedule){
+        if (!_monthSchedule) {
             return;
         }
         _monthSchedule.map(rs => {
@@ -820,13 +827,13 @@ class HomeViewModel extends React.Component {
             let jarak = getDistance({
                 latitude: rsLat,
                 longitude: rsLng
-            },this.props.userlocation);
+            }, this.props.userlocation);
 
             let isLong = "";
             let jrkTxt = "";
             let rsnear = false;
 
-           //console.log(rsLat+","+rsLng)
+            //console.log(rsLat+","+rsLng)
             //console.log(Math.round(jarak))
             // jarak=undefined;
 
@@ -861,7 +868,7 @@ class HomeViewModel extends React.Component {
         groupByid.sort(function (a, b) {
             return a.jarak - b.jarak;
         })
-       console.log('group ', groupByid);
+        console.log('group ', groupByid);
 
 
 
@@ -1134,7 +1141,7 @@ class HomeViewModel extends React.Component {
     }
     //SEARCH PROCESS
     addSearch() {
-        const _role  = this.props.userrole;
+        const _role = this.props.userrole;
         if (_role == Constant.ROLE_ADDDOCTORAGAIN || _role == Constant.ROLE_INSELECTSCHEDULE) {
             return <View style={styles.inputContainer}>
                 <TextInput underlineColorAndroid="rgba(0,0,0,0)"
@@ -1248,7 +1255,7 @@ class HomeViewModel extends React.Component {
                 }
 
             </View>
-            
+
             {
                 this._loadercontent()
             }
@@ -1312,7 +1319,7 @@ class HomeViewModel extends React.Component {
 const styles = StyleSheet.create({
     inputContainer: {
         flexDirection: 'row',
-        height:  moderateScale(35),
+        height: moderateScale(35),
         // marginBottom: 10,
         marginTop: convertHeight('5%'),
         //alignSelf: 'center',
@@ -1341,7 +1348,7 @@ function mapStateToProps(state) {
         userlocation: state.userGeolocation,
         scheduleData: state.scheduleData,
         currentScheduleData: state.currentScheduleData,
-        userrole:state.userRole
+        userrole: state.userRole
     };
 }
 function dispatchToProps(dispatch) {
@@ -1349,16 +1356,16 @@ function dispatchToProps(dispatch) {
         cleardata: () =>
             dispatch({ type: ACTION_TYPE.CLEAR_DATA }),
         updateRole: role =>
-            dispatch({ type: ACTION_TYPE.UPDATE_USERROLE,value:role }),
+            dispatch({ type: ACTION_TYPE.UPDATE_USERROLE, value: role }),
         updateSchedule: schedule =>
-            dispatch({ type: ACTION_TYPE.UPDATE_SCHEDULE,value:schedule }),
+            dispatch({ type: ACTION_TYPE.UPDATE_SCHEDULE, value: schedule }),
         updateUserLocation: data =>
-            dispatch({ type: ACTION_TYPE.UPDATE_USER_LOCATION,value:data })
+            dispatch({ type: ACTION_TYPE.UPDATE_USER_LOCATION, value: data })
     };
 }
 export default connect(
     mapStateToProps,
     dispatchToProps,
-)( withNavigation(HomeViewModel));
+)(withNavigation(HomeViewModel));
 
 

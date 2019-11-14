@@ -49,12 +49,12 @@ import { TouchableOpacity } from 'react-native-gesture-handler';
 import DATA_SCHEDULE from '../db/dataScheduleManager';
 
 //REDUX
-import {connect} from 'react-redux';
+import { connect } from 'react-redux';
 import ACTION_TYPE from '../redux/actions/actions';
 
 var encrymd5 = require('crypto-js');
-export default class Global{
- 
+export default class Global {
+
 };
 
 
@@ -531,15 +531,15 @@ export function generateSelectDokter(arry) {
     return data;
 }
 //UPDATE REDUX DATA
-export function updateSelectSchedule(dataArray,scheduleSelect) {
+export function updateSelectSchedule(dataArray, scheduleSelect) {
 
     let data = [];
     for (var s = 0; s < dataArray.length; s++) {
-        if(dataArray[s].id == scheduleSelect.parentId){
+        if (dataArray[s].id == scheduleSelect.parentId) {
             dataArray[s].isSelect = scheduleSelect.isSelect;
         }
         for (var i = 0; i < dataArray[s].doctors.length; i++) {
-            if(dataArray[s].doctors[i].id == scheduleSelect.data.id){
+            if (dataArray[s].doctors[i].id == scheduleSelect.data.id) {
                 dataArray[s].doctors[i].isSelect = scheduleSelect.data.isSelect;
             }
             if (dataArray[s].doctors[i].isSelect == 1) {
@@ -663,7 +663,7 @@ export function successLogutClear() {
 }
 
 //Distance()
-export function getDistance(value,userlocation=null) {
+export function getDistance(value, userlocation = null) {
     //console.log("geo rs",value);
     //console.log("geo user", userlocation);
     if (userlocation != null) {
@@ -679,7 +679,7 @@ export function getDistance(value,userlocation=null) {
         return distance;
         //}, 2000);
 
-    }else{
+    } else {
         return null;
     }
 }
@@ -821,7 +821,7 @@ export async function Global_checkStatus(callback) {
     //console.log("user", user.getData());
 }
 //REDUX
-export async function checkAttend(userattend,callback) {
+export async function checkAttend(userattend, callback) {
     let now = getDATENoW();
     console.log("Global_checkStatus");
     console.log("user", userattend)
@@ -843,9 +843,9 @@ export async function checkAttend(userattend,callback) {
             if (loc == now) {
                 console.log("atten TODAY correct");
 
-                if(userattend.set_schedule.length>0){
+                if (userattend.set_schedule.length > 0) {
                     callback(Constant.ROLE_READYSTARTSCHEDULE);
-                }else{
+                } else {
                     callback(
                         Constant.ROLE_INSELECTSCHEDULE
                     );
@@ -905,7 +905,7 @@ export async function Global_resetShceduleSession(_calback = null) {
                 }
             })*/
         } else {
-
+            _calback(false);
         }
     });
 }
@@ -990,10 +990,10 @@ export async function GLOBAL_INITSCHEDULE_NOFORCE(_state) {
     console.log('GLOBAL_INITSCHEDULE_NOFORCE', datajson);
 }
 //REQ SCHEDULE WITH TIMEOUT
-export function GLOBAL_INITSCHEDULE(userdata,_state) {
+export function GLOBAL_INITSCHEDULE(userdata, _state) {
     let data = new FormData();
     let didTimeOut = false;
-    console.log("USER",userdata)
+    console.log("USER", userdata)
     data.append("user_id", userdata.profile_id);
     let _url = Constant.RESTLINK + restlist().req_schdule;
     console.log("GLOBAL_INITSCHEDULE", _url);
@@ -1034,7 +1034,7 @@ export function GLOBAL_INITSCHEDULE(userdata,_state) {
             //console.log('req schedule', res);
             if (res.api_message == 'success') {
                 /**/
-                ProcessScheduleData(userdata,res,_state);;
+                ProcessScheduleData(userdata, res, _state);;
                 // let tempres = Object.assign({}, res);
                 // tempres.dateCreate = formateFullDateNumber(Date.now(), "YYYY-MM-DD")
                 // // SYNCLoc(KEYS.KEY_D, KEYS.KEY_SCHEDULE);
@@ -1215,7 +1215,7 @@ export function GLOBAL_INITSCHEDULE(userdata,_state) {
 
 }
 //SCHEDULE PROCESS 
-export function ProcessScheduleData(userdata,res,callback){
+export function ProcessScheduleData(userdata, res, callback) {
     let tempres = Object.assign({}, res);
     tempres.dateCreate = formateFullDateNumber(Date.now(), "YYYY-MM-DD")
     // SYNCLoc(KEYS.KEY_D, KEYS.KEY_SCHEDULE);
@@ -1274,7 +1274,7 @@ export function isTODAY(params) {
     }
 }
 //REQ SCHEDULE
-export async function Global_getreqSchedule(userdata,_state) {
+export async function Global_getreqSchedule(userdata, _state) {
     let isFirstLoad = true;
     let data = new FormData();
     console.log(userdata)
@@ -1285,7 +1285,7 @@ export async function Global_getreqSchedule(userdata,_state) {
             //console.log('req schedule', res);
             if (res.api_message == 'success') {
                 /**/
-                ProcessScheduleData(userdata,res,_state);
+                ProcessScheduleData(userdata, res, _state);
                 // let tempres = Object.assign({}, res);
                 // tempres.dateCreate = formateFullDateNumber(Date.now(), "YYYY-MM-DD")
                 // // SYNCLoc(KEYS.KEY_D, KEYS.KEY_SCHEDULE);
