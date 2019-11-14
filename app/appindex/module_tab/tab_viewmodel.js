@@ -7,7 +7,7 @@ import BottomNavigation, {
 } from 'react-native-material-bottom-navigation';
 //import OneSignal from "react-native-onesignal";
 import Constant from "../../global/Constant";
-import Global, { getDateNumber, getDateNumberAttend, saveAttenToCore, SYNCLoc_CORE_GET, UPDATE_SET_TODAY, SYNCLoc_CORE_SET, updateSelectSchedule } from "../../global/Global";
+import Global, { getDateNumber, getDateNumberAttend, saveAttenToCore, SYNCLoc_CORE_GET, UPDATE_SET_TODAY, SYNCLoc_CORE_SET, updateSelectSchedule, generateFormatSelectDokter } from "../../global/Global";
 import user from "../../global/user";
 import { _handleAppStateChange, convertHeight, convertWidth, callAlert, generateSelectDokter, getLocal, delLocal, successLogutClear, loading, reqNotifList, _sendSubmitComplete, addLocal, getListLocation, getExpendsList, callToast, formateFullDateNumber, getDokterId, getListTarget, rebuildSchedule, getDokterIdTab, getListTargetBK, getListUnTarget, _getDoktorDetail, getIfYesterday, _reqAboutUs, _checkStatus, Global_checkStatus, getDokterisArray, Global_resetShceduleSession, getDoctorById, reduceWithMetSchedule, _sendAtten, getDokterIdTabBySetSchedule } from "../../global/Global"
 //REDUX
@@ -212,6 +212,87 @@ class TabController extends Component {
             }
         )
         return true;
+    }
+    //SHOW RENDER
+    render() {
+        const { isPopStart,
+            isBurgerStart,
+            isContactUsOpen,
+            isResetPass,
+            isHelpOpen,
+            isLoading,
+            isPopFeedBackStart,
+            isSyncPageOpen,
+            popNotifEnable,
+            init_onesignal,
+            init_apps,
+            ROLE,
+            listrev,
+            popNotifMessage,
+            typeListDokter,
+            popListDoktor,
+            isAboutUsOpen,
+            dataschedule
+        } = this.state;
+
+
+        return <View style={{ flex: 1, backgroundColor: Constant.COLOR_WHITE2 }}>
+
+            {
+                this.onSetTab(true)
+
+            }
+            {isPopStart == true &&
+                <PopViewModel _rew={listrev} onPressStartCancel={this.onPressStartCancel.bind(this)} onPressStart={this.onStartSelectSchedule.bind(this)} />
+            }
+            {popListDoktor == true &&
+                <PopListDokterViewModel currentType={typeListDokter} onPressStartCancel={this.onCloseOpenList.bind(this)} />
+            }
+            {isPopFeedBackStart == true &&
+                <PopFeedBackViewModel onPressStartCancel={this._onFeedbackClose.bind(this)} onPressStart={this._onSendFeedBackPress.bind(this)} />
+            }
+            {
+                this.onStatusGeoLocation()
+            }
+            {isResetPass == true &&
+                <Resetscreen onBack={this._onCloseResetPass.bind(this)} onSend={this._onTryResetPass.bind(this)} />
+            }
+            {isAboutUsOpen == true &&
+                <AboutUsScreen navigation={this.props.navigation} _callPopBurger={this.PopBurget.bind(this)} onClose={this._onAboutClose.bind(this)} />
+            }
+            {isContactUsOpen == true &&
+                <ContactUsScreen navigation={this.props.navigation} _callPopBurger={this.PopBurget.bind(this)} onClose={this._onContactClose.bind(this)} />
+            }
+            {isHelpOpen == true &&
+                <HelpScreen navigation={this.props.navigation} _callPopBurger={this.PopBurget.bind(this)} onClose={this._onCHelpClose.bind(this)} />
+            }
+            {
+                popNotifEnable == true &&
+                <PopNotifViewModel navigation={this.props.navigation} data={popNotifMessage} onClose={this._onNotifClose.bind(this)} />
+            }
+            {
+                isSyncPageOpen == true &&
+                <SyncScreen navigation={this.props.navigation} _callPopBurger={this.PopBurget.bind(this)} onClose={this._onSyncPageClose.bind(this)} />
+            }
+            {isBurgerStart == true &&
+                <PopBurgerMenuViewModel
+                    onPressClose={this.onPressCloseBurgerMenu.bind(this)}
+                    onPressLogout={this.onPressLogoutBurgerMenu.bind(this)}
+                    //onPressLogout={this._onExit.bind(this)}
+                    onPressReset={this.onPressResetPass.bind(this)}
+                    onAboutPress={this._onAboutOpen.bind(this)}
+                    onContactPress={this._onContactOpen.bind(this)}
+                    onHelpPress={this._onHelpOpen.bind(this)}
+                    //onSyncPress={this._onSyncAll.bind(this)}
+                    onSyncPress={this._onSyncPageOpen.bind(this)}
+                />
+            }
+            <ScreeDevmode />
+            {isLoading &&
+                loading()
+            }
+
+        </View>;
     }
     // FUNCTION
     //CHANGE ROOT ROLE
@@ -704,87 +785,7 @@ class TabController extends Component {
             </View>
         </View>
     }
-    //SHOW RENDER
-    render() {
-        const { isPopStart,
-            isBurgerStart,
-            isContactUsOpen,
-            isResetPass,
-            isHelpOpen,
-            isLoading,
-            isPopFeedBackStart,
-            isSyncPageOpen,
-            popNotifEnable,
-            init_onesignal,
-            init_apps,
-            ROLE,
-            listrev,
-            popNotifMessage,
-            typeListDokter,
-            popListDoktor,
-            isAboutUsOpen,
-            dataschedule
-        } = this.state;
-
-
-        return <View style={{ flex: 1, backgroundColor: Constant.COLOR_WHITE2 }}>
-
-            {
-                this.onSetTab(true)
-
-            }
-            {isPopStart == true &&
-                <PopViewModel _rew={listrev} onPressStartCancel={this.onPressStartCancel.bind(this)} onPressStart={this.onStartSelectSchedule.bind(this)} />
-            }
-            {popListDoktor == true &&
-                <PopListDokterViewModel currentType={typeListDokter} onPressStartCancel={this.onCloseOpenList.bind(this)} />
-            }
-            {isPopFeedBackStart == true &&
-                <PopFeedBackViewModel onPressStartCancel={this._onFeedbackClose.bind(this)} onPressStart={this._onSendFeedBackPress.bind(this)} />
-            }
-            {
-                this.onStatusGeoLocation()
-            }
-            {isResetPass == true &&
-                <Resetscreen onBack={this._onCloseResetPass.bind(this)} onSend={this._onTryResetPass.bind(this)} />
-            }
-            {isAboutUsOpen == true &&
-                <AboutUsScreen navigation={this.props.navigation} _callPopBurger={this.PopBurget.bind(this)} onClose={this._onAboutClose.bind(this)} />
-            }
-            {isContactUsOpen == true &&
-                <ContactUsScreen navigation={this.props.navigation} _callPopBurger={this.PopBurget.bind(this)} onClose={this._onContactClose.bind(this)} />
-            }
-            {isHelpOpen == true &&
-                <HelpScreen navigation={this.props.navigation} _callPopBurger={this.PopBurget.bind(this)} onClose={this._onCHelpClose.bind(this)} />
-            }
-            {
-                popNotifEnable == true &&
-                <PopNotifViewModel navigation={this.props.navigation} data={popNotifMessage} onClose={this._onNotifClose.bind(this)} />
-            }
-            {
-                isSyncPageOpen == true &&
-                <SyncScreen navigation={this.props.navigation} _callPopBurger={this.PopBurget.bind(this)} onClose={this._onSyncPageClose.bind(this)} />
-            }
-            {isBurgerStart == true &&
-                <PopBurgerMenuViewModel
-                    onPressClose={this.onPressCloseBurgerMenu.bind(this)}
-                    onPressLogout={this.onPressLogoutBurgerMenu.bind(this)}
-                    //onPressLogout={this._onExit.bind(this)}
-                    onPressReset={this.onPressResetPass.bind(this)}
-                    onAboutPress={this._onAboutOpen.bind(this)}
-                    onContactPress={this._onContactOpen.bind(this)}
-                    onHelpPress={this._onHelpOpen.bind(this)}
-                    //onSyncPress={this._onSyncAll.bind(this)}
-                    onSyncPress={this._onSyncPageOpen.bind(this)}
-                />
-            }
-            <ScreeDevmode />
-            {isLoading &&
-                loading()
-            }
-
-        </View>;
-    }
+    
     _onExit() {
         this.props.cleardata();
         this.props.screenProps.dispatch(
@@ -1476,9 +1477,10 @@ class TabController extends Component {
         }
     }
     async _sendSelectSchedule() {
-        console.log('selec dokter ', schdeuleAToday);
-        let _selectDokter = generateSelectDokter(schdeuleAToday);//find select dokter
-
+        console.log('selec dokter ',this.props.currentSelectDoktor);
+        //let _selectDokter = generateSelectDokter(this.props.currentScheduleData.visit_schedule);//find select dokter
+        let _selectDokter =  generateFormatSelectDokter(this.props.currentSelectDoktor);//find select dokter
+       
         console.log('selec dokter id ', _selectDokter);
         //for api
         let data = new FormData();
@@ -1549,7 +1551,7 @@ class TabController extends Component {
 
                         } else {
                             //callToast("res select not found");
-                            that._selectDokterComplete(_data, true);
+                            //that._selectDokterComplete(_data, true);
                         }
 
                     })
@@ -2166,7 +2168,8 @@ function mapStateToProps(state) {
         scheduleData: state.scheduleData,
         userrole:state.userRole,
         userattendIsExpired:state.userAttendExpired,
-        currentScheduleData:state.currentScheduleData
+        currentScheduleData:state.currentScheduleData,
+        currentSelectDoktor: state.currentSelectDoktor,
     };
 }
 function dispatchToProps(dispatch) {

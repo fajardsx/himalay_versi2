@@ -25,12 +25,10 @@ class PopViewModel extends Component {
   componentWillReceiveProps(prevProps) {
     const {currentrole} = this.state;
     console.log('popup_role', prevProps);
-    if (currentrole != prevProps.role) {
-      console.log('popup_role', prevProps.role);
-      this.setState({
-        currentrole: prevProps.role,
-      });
-    }
+
+    this.setState({
+      currentrole: this.props.userRole,
+    });
   }
   getTitleText = () => {
     switch (this.props.userrole) {
@@ -100,7 +98,7 @@ class PopViewModel extends Component {
               //marginTop: convertHeight('5%'),
               width: convertWidth('40%'),
             }}
-            data={_rew}
+            data={this.props.currentSelectDoktor}
             renderItem={({item}) => (
               <Text
                 style={{
@@ -110,7 +108,8 @@ class PopViewModel extends Component {
                   color: '#b3b3b3',
                   marginVertical: convertHeight('1.5%'),
                 }}>
-                {item.name}
+                {item.data.name}
+                {console.log('Select doctor ', item)}
               </Text>
             )}
             keyExtractor={(item, index) => index.toString()}
@@ -268,6 +267,7 @@ function mapStateToProps(state) {
   return {
     userrole: state.userRole,
     userprofile: state.userData,
+    currentSelectDoktor: state.currentSelectDoktor,
   };
 }
 function dispatchToProps(dispatch) {
@@ -275,7 +275,4 @@ function dispatchToProps(dispatch) {
     updateuser: data => dispatch({type: ACTION_TYPE.UPDATE_USER, value: data}),
   };
 }
-export default connect(
-  mapStateToProps,
-  dispatchToProps,
-)(PopViewModel);
+export default connect(mapStateToProps, dispatchToProps)(PopViewModel);

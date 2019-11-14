@@ -10,9 +10,11 @@ import {Styleapp} from '../../styleapp';
 import { LEMARI_GLOBAL_LOAD, SYNCLoc } from "../module_async/AsyncManager";
 import KEYS from "../module_async/utils/keyAsync";
 import { isToday } from "date-fns";
-import { GetMeetDoktor, UpdateOFFLINE_list_doctor_set_this_month, GetAllDocter, GetAllDocterCound, getTodayPlan } from "../../global/dokter_manager";
+import { GetMeetDoktor, UpdateOFFLINE_list_doctor_set_this_month, GetAllDocter, GetAllDocterCound, getTodayPlan, GetNotMet, GetScheduleMonth, GetServerTodayPlan } from "../../global/dokter_manager";
 import DATA_SCHEDULE from "../../db/dataScheduleManager";
-
+//REDUX
+import { connect } from 'react-redux';
+import ACTION_TYPE from "../../redux/actions/actions";
 
 
 
@@ -35,6 +37,8 @@ class UserDashboard extends React.Component{
             todaytxt:[],
             metCount:0,
             popAbsenShow:false,
+            notMeetCount:0,
+            MslCount:0,
             todayplan:0,
             meetcount:0,
         }
@@ -42,7 +46,8 @@ class UserDashboard extends React.Component{
     }
     componentDidMount(){
        // this.updateStatusSchedule();
-       // console.log("dashboard user",this.props)
+       console.log("dashboard user",this.props.userData)
+       console.log("dashboard schedule",this.props.currentScheduleData)
     }
     componentWillReceiveProps(nextProps) {
         this.onGetCFData();
@@ -223,31 +228,22 @@ class UserDashboard extends React.Component{
             GetAllDocterCound(this.setTodayPlanCount);
             TODAY_NUM = this.setTodayPlanCount+user.getUserToday().length;
         }else{*/
-            GetAllDocterCound(this.setTodayPlanCount.bind(this));
+            this.setTodayPlanCount(0);
        // }
         
        // return today_num;
     }
     async setTodayPlanCount(num){
-        console.log("TODAY_NUM ",num);
-       // console.log("GET USER TODAY ", user.getUserToday().length);
-       /* if (this.props.userrole == Constant.ROLE_ADDDOCTORAGAIN || this.props.userrole == Constant.ROLE_INSELECTSCHEDULE){
-            if(user.getUserToday().length>num){
-                TODAY_NUM = user.getUserToday().length;
-            }else{
-                TODAY_NUM = num + user.getUserToday().length;
-            }
-           
-        }else{
-            if(num>TODAY_NUM){*/
-                let resultcount = await getTodayPlan();
-                console.log("getTodayPlan()",resultcount)
-                TODAY_NUM = resultcount;
-                this.setState({
-                    todayplan:resultcount
-                }, () => this.onGetCFData())
-          //  }
-        //}
+        this.onGetCFData();
+        // console.log("TODAY_NUM ",num);
+       
+        //         let resultcount = await getTodayPlan();
+        //         console.log("getTodayPlan()",resultcount)
+        //         TODAY_NUM = resultcount;
+        //         this.setState({
+        //             todayplan:resultcount
+        //         }, () => this.onGetCFData())
+     
     }
     onGetTotal(){
         getDoctorTotal().then(res => {
@@ -281,16 +277,26 @@ class UserDashboard extends React.Component{
         const {scheduletxt,todaytxt} = this.state;
         let CF = 0;
         let resultCF =0;
-        
+        GetNotMet(this.props.currentScheduleData,this.onSetNotMet.bind(this))
+        GetServerTodayPlan(this.props.currentScheduleData,this.onSetTodayPlanCount.bind(this))
+        GetScheduleMonth(this.props.currentScheduleData,this.onSetScheduleMonth.bind(this))
         GetMeetDoktor(tempMetfound)
          
-
          UpdateOFFLINE_list_doctor_set_this_month(tempMetfound).then(res=>{
              if(res){
                  MET_COUNT = res.length;
              }
          })
          //MET_COUNT = tempMetfound.length;
+    }
+    onSetNotMet(data){
+        this.setState({notMeetCount:data})
+    }
+    onSetScheduleMonth(data){
+        this.setState({MslCount:data})
+    }
+    onSetTodayPlanCount(data){
+        this.setState({todayplan:data})
     }
     onFinish(){
         this.props.onPressStart();
@@ -344,85 +350,6 @@ class UserDashboard extends React.Component{
                 }
             }
         })
-      //  console.log("today dokter schedule", todaytxt)
-        /*SYNCLoc(KEYS.KEY_G,KEYS.KEY_SCHEDULE).then(res=>{
-            if(res){
-               // console.log(res[0])
-                if (res[0].set_schedule && res[0].set_schedule.length>0){
-                    res[0].set_schedule.forEach((rs, index) => {
-                        rs.doctors.forEach((dokter,index)=>{
-                            //console.log("status resulth", dokter);
-                            dokterSelect++;
-                            if (dokter.schedule) {
-                                dokter.schedule.forEach((dataResulth, index) => {
-                                    // console.log("dokter schedule", dataResulth)
-                                    if (dataResulth.results) {
-                                        let _status = dataResulth.results.status;
-                                        //console.log("status resulth", dataResulth.results.feedback_sales);
-
-                                        if (isToday(dataResulth.results.updated_at)) {
-                                            if (dataResulth.results.feedback_sales != null && _status != null) {
-                                                if (dataResulth.results.feedback_sales.length > 2) {
-                                                    complete++;
-                                                }
-
-                                            }
-                                            //console.log("today complete " + complete + "," + dokterSelect)
-                                        }
-
-                                    }
-                                })
-                            }
-                        });
-                    })
-                    //console.log("today complete " + complete + "," + dokterSelect)
-                    if (complete == dokterSelect) {
-                        if (complete > 0){
-                            resulthComplete = true;
-                        }
-                       
-                    }else{
-                        resulthComplete = false;
-                    }
-                    //console.log("complete ",resulthComplete);
-                    _callback(resulthComplete);
-                }
-            }
-        })*/
-       /* if (todaytxt != null) {
-            todaytxt.forEach((dokter, index) => {
-               
-                dokterSelect++;
-                if (dokter.schedule){
-                    dokter.schedule.forEach((dataResulth, index) => {
-                        // console.log("dokter schedule", dataResulth)
-                        if (dataResulth.results) {
-                            let _status = dataResulth.results.status;
-                            //console.log("status resulth", dataResulth.results.feedback_sales);
-                            console.log("status resulth", dataResulth.results);
-                            if (isToday(dataResulth.results.updated_at)){
-                                if (dataResulth.results.feedback_sales != null && _status != null) {
-                                    if (dataResulth.results.feedback_sales.length > 2){
-                                        complete++;
-                                    }
-                                   
-                                }
-                               console.log("today complete " + complete + "," + dokterSelect)
-                            }
-                          
-                        } 
-                    })
-                }
-               
-            })
-           
-            if (complete == dokterSelect && complete>0) {
-                resulthComplete = true;
-            }
-
-            return resulthComplete;
-        }*/
-       
     }
     updateComplete(res){
         compelete = res;
@@ -527,15 +454,6 @@ class UserDashboard extends React.Component{
         //console.log(user.getPhoto());
         return <View style={Styleapp._userdashboardcontainer}>
             <View style={Styleapp._userdashboard}>
-                <ShadowView style={{
-                    width: convertWidth('95%'), height: convertHeight('14%'),
-                    backgroundColor: '#FFFFFF',
-                    position: 'absolute',
-                    shadowColor: "#000",
-                    shadowOffset: { width: 0, height: 2 },
-                    shadowOpacity: 0.1,
-                    shadowRadius: 3,
-                }} />
                 <TouchableOpacity style={{
                     width: convertWidth("6.7%"),
                     height: convertWidth("6.7%"),
@@ -551,7 +469,7 @@ class UserDashboard extends React.Component{
                         <Image
                             style={Styleapp._userPhotodashboard}
                             resizeMode={'contain'}
-                            source={{ uri: this.tryGetPhotoProfil() }}
+                            source={{ uri: this.props.userData.profile_photo?this.props.userData.profile_photo:Constant.BlankFotoURL }}
                         />
                     </View>
                     <View
@@ -568,12 +486,12 @@ class UserDashboard extends React.Component{
                 </TouchableOpacity>
                
                 <View style={{ paddingRight: '5%' ,borderWidth:0}}>
-                    <Text numberOfLines={1} style={{ borderWidth: 1, maxWidth: convertWidth('20%'), textAlignVertical:'top', borderWidth:0,fontFamily: Constant.POPPINS_MEDIUM, fontSize: convertWidth('2.3%'), color: "#000" ,height:convertHeight('4.6%')}}>{user.getNameUser()}</Text>
-                    <Text numberOfLines={1} style={{ borderWidth: 0, fontFamily: Constant.POPPINS_ULTRALIGHT, fontSize: convertWidth('1.7%'), color: "#000", height: convertHeight('4%'),marginTop:convertHeight('1%') }}>{user.getUserRank()}</Text>
+                    <Text numberOfLines={1} style={{ borderWidth: 1, maxWidth: convertWidth('20%'), textAlignVertical:'top', borderWidth:0,fontFamily: Constant.POPPINS_MEDIUM, fontSize: convertWidth('2.3%'), color: "#000" ,height:convertHeight('4.6%')}}>{this.props.userData.profile_name}</Text>
+                    <Text numberOfLines={1} style={{ borderWidth: 0, fontFamily: Constant.POPPINS_ULTRALIGHT, fontSize: convertWidth('1.7%'), color: "#000", height: convertHeight('4%'),marginTop:convertHeight('1%') }}>{this.props.userData.profile_position}</Text>
                 </View>
 
                 <View style={{ paddingRight: '2%' }}>
-                    <Text style={{ fontFamily: Constant.POPPINS_REG, fontSize: convertWidth('1.5%'), color: this.getColorScheduleText() }}>MSL</Text>
+                    <Text style={{ fontFamily: Constant.POPPINS_REG, fontSize: convertWidth('1.5%'), color: this.getColorScheduleText() }}>{"MSL"}</Text>
                       
                             <Text
                                 ref={shed => this.schedules = shed}
@@ -585,7 +503,7 @@ class UserDashboard extends React.Component{
                                     //textDecorationLine:'underline'
                                 }} 
                                 
-                                >{TOTAL_COUNT}</Text>
+                                >{this.state.MslCount}</Text>
                     {this.props.userrole == Constant.ROLE_INLOGIN &&
                     <View style={{ borderBottomWidth: 2, width: convertWidth('2%'), borderColor: this.getColorScheduleText()}}/>
                     }
@@ -601,7 +519,7 @@ class UserDashboard extends React.Component{
                         color: this.getColorTodayText(),
                         borderBottomColor: Constant.COLOR_GRAY2,
                         // textDecorationLine:'underline'
-                    }}>{this.onGetBFData()}</Text>
+                    }}>{this.state.notMeetCount}</Text>
                   
                       
                    
@@ -677,4 +595,22 @@ const styles = StyleSheet.create({
         borderRadius: 10
     }
 })
-export default UserDashboard;
+/***/
+function mapStateToProps(state) {
+    return {
+        userData: state.userData,
+        currentSelectDoktor: state.currentSelectDoktor,
+        currentScheduleData: state.currentScheduleData,
+        userrole: state.userRole
+    };
+}
+function dispatchToProps(dispatch) {
+    return {
+       
+    };
+}
+export default connect(
+    mapStateToProps,
+    dispatchToProps,
+)(UserDashboard);
+

@@ -530,6 +530,17 @@ export function generateSelectDokter(arry) {
     */
     return data;
 }
+//generateSelectFormat
+export function generateFormatSelectDokter(arry) {
+
+    let data = [];
+    arry.map(res=>{
+        if(data.find(doktorres=>{return res.data.id == doktorres}) == undefined){
+            data.push(res.data.id);
+        }
+    })
+    return data;
+}
 //UPDATE REDUX DATA
 export function updateSelectSchedule(dataArray, scheduleSelect) {
 

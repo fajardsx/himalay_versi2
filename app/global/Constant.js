@@ -78,7 +78,8 @@ class Constant {
     //"Access-Token": DEFAULT_USER_CONFIG.userToken,
     //"Content-Type": "application/json;charset=UTF-8"
   };
-
+  static BlankFotoURL =
+    'https://dotcomsolution.000webhostapp.com/himalaya/blankprofilfoto.png';
   static LINK_EDETAILING = '../../../../assets/edetailing/';
   static LINKTXT = '.txt';
   static LINKPDF = '.pdf';

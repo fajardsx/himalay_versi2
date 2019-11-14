@@ -64,6 +64,7 @@ class HomeViewModel extends React.Component {
         // this.props.updateRole(Constant.ROLE_INLOGIN)
 
         that = this;
+        //this.dashboard = React.createRef();
         // console.log(this.props);
     }
     UNSAFE_componentWillMount() {
@@ -148,7 +149,7 @@ class HomeViewModel extends React.Component {
             );
         }
         if (this.state.currentRole != prevProps.screenProps._role) {
-            this.dashboard.onTargetToday();
+            if(this.dashboard)this.dashboard.onTargetToday();
             // console.log('update role')
             if (prevProps.screenProps._role == Constant.ROLE_READYSTARTSCHEDULE) {
                 this.setState(
@@ -293,7 +294,10 @@ class HomeViewModel extends React.Component {
 
         //this.initRefresh();
         if (this.props.userrole == Constant.ROLE_INLOGIN) {
-            dataDummy = this.props.screenProps._dataschedule;
+            dataDummy = this.props.currentScheduleData.visit_schedule;
+            this.initToday();
+        } else if (this.props.userrole == Constant.ROLE_READYSTARTSCHEDULE) {
+            dataDummy = this.props.currentScheduleData.set_schedule;
             this.initToday();
         } else {
             if (this.props.screenProps._selectschedule) {
@@ -1290,8 +1294,8 @@ class HomeViewModel extends React.Component {
             {
                 !KeyboardIsShow &&
                 <UserDashboard
-                    userrole={_role}
-                    ref={dashboard => this.dashboard = dashboard}
+                    userROLE={_role}
+                    ref={refs=>{this.dashboard=refs}}
                     onPressStart={this.onStart.bind(this)}
                     onAgain={this.onSelectAgainSchedule.bind(this)}
                     onCancelAgain={this.onCancelAgainSchedule.bind(this)}
