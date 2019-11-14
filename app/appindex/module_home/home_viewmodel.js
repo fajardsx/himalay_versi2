@@ -474,92 +474,93 @@ class HomeViewModel extends React.Component {
             return a;
         }, []);
     }
+
     //PROCESSS CHECKMATE
-    _onCheckHospitalByDoktor(id) {
-        //  console.log('doctor click ', id);
-        let { _cell, data } = this.state;
-        // console.log(" data", data);
-        console.log(" cell", _cell);
-        this.setState({
-            isLoading: true,
-            convertDataState: []
-            // isSelectLoading:true
-        }, () => {
-            for (var i = 0; i < _cell.length; i++) {
-                //if (_cell[i].length > 0) {
-                if (id.data.locations) {
-                    id.data.locations.map((res, index) => {
-                        let placeHospital = _cell[i].find(result => {
-                            return result.dataHospital.id == res;
-                        });
-                        if (
-                            placeHospital == undefined ||
-                            placeHospital == null
-                        ) {
-                            return;
-                        }
-                        if (placeHospital.dataHospital) {
-                            // console.log("hospital ", placeHospital);
-                            let doktor = placeHospital.dataHospital.doctors.find(
-                                doc => {
-                                    return doc.id == id.listid;
-                                }
-                            );
-                            //  console.log("doktor ", doktor);
-                            if (doktor) {
-                                doktor.isSelect = id.isSelect;
-                            }
-                            //auto check hospital
-                            let countSelectDokter = this._findSelectDoktorFromHospital(
-                                placeHospital.dataHospital.doctors
-                            );
-                            if (
-                                countSelectDokter.length ==
-                                placeHospital.dataHospital.doctors.length
-                            ) {
-                                placeHospital.dataHospital.isSelect = 1;
-                            } else {
-                                placeHospital.dataHospital.isSelect = 0;
-                            }
-                        }
-                    });
-                } else {
-                    callToast("Doctor Location id not found");
-                }
-            }
+    // _onCheckHospitalByDoktorBK(id) {
+    //     //  console.log('doctor click ', id);
+    //     let { _cell, data } = this.state;
+    //     // console.log(" data", data);
+    //     console.log(" cell", _cell);
+    //     this.setState({
+    //         isLoading: true,
+    //         convertDataState: []
+    //         // isSelectLoading:true
+    //     }, () => {
+    //         for (var i = 0; i < _cell.length; i++) {
+    //             //if (_cell[i].length > 0) {
+    //             if (id.data.locations) {
+    //                 id.data.locations.map((res, index) => {
+    //                     let placeHospital = _cell[i].find(result => {
+    //                         return result.dataHospital.id == res;
+    //                     });
+    //                     if (
+    //                         placeHospital == undefined ||
+    //                         placeHospital == null
+    //                     ) {
+    //                         return;
+    //                     }
+    //                     if (placeHospital.dataHospital) {
+    //                         // console.log("hospital ", placeHospital);
+    //                         let doktor = placeHospital.dataHospital.doctors.find(
+    //                             doc => {
+    //                                 return doc.id == id.listid;
+    //                             }
+    //                         );
+    //                         //  console.log("doktor ", doktor);
+    //                         if (doktor) {
+    //                             doktor.isSelect = id.isSelect;
+    //                         }
+    //                         //auto check hospital
+    //                         let countSelectDokter = this._findSelectDoktorFromHospital(
+    //                             placeHospital.dataHospital.doctors
+    //                         );
+    //                         if (
+    //                             countSelectDokter.length ==
+    //                             placeHospital.dataHospital.doctors.length
+    //                         ) {
+    //                             placeHospital.dataHospital.isSelect = 1;
+    //                         } else {
+    //                             placeHospital.dataHospital.isSelect = 0;
+    //                         }
+    //                     }
+    //                 });
+    //             } else {
+    //                 callToast("Doctor Location id not found");
+    //             }
+    //         }
 
-            this.props.screenProps._updateReviewSchedule(id);
-            let _convertData = [];
-            for (var i = 0; i < _cell.length; i++) {
-                _cell[i].map(res => {
-                    if (res.dataHospital.doctors.length > 0) {
-                        _convertData.push({
-                            title: res.dataHospital.name,
-                            parentdata: res,
-                            data: res.dataHospital.doctors,
-                            area: res.area
-                        })
-                    }
-                });
-            }
+    //         this.props.screenProps._updateReviewSchedule(id);
+    //         let _convertData = [];
+    //         for (var i = 0; i < _cell.length; i++) {
+    //             _cell[i].map(res => {
+    //                 if (res.dataHospital.doctors.length > 0) {
+    //                     _convertData.push({
+    //                         title: res.dataHospital.name,
+    //                         parentdata: res,
+    //                         data: res.dataHospital.doctors,
+    //                         area: res.area
+    //                     })
+    //                 }
+    //             });
+    //         }
 
-            console.log("DONE CHECK PROCESSS")
-            this.setState({
-                isLoading: false,
-                //isSelectLoading:false,
-                convertDataState: _convertData,
-                _cell: _cell
-            }, () => {
-                this.getTotalShedule()
-                //this._setData()
-            })
+    //         console.log("DONE CHECK PROCESSS")
+    //         this.setState({
+    //             isLoading: false,
+    //             //isSelectLoading:false,
+    //             convertDataState: _convertData,
+    //             _cell: _cell
+    //         }, () => {
+    //             this.getTotalShedule()
+    //             //this._setData()
+    //         })
 
-            //  console.log("update _convertData", _convertData)
-            // console.log("update data", _cell)
-        }
-        )
+    //         //  console.log("update _convertData", _convertData)
+    //         // console.log("update data", _cell)
+    //     }
+    //     )
 
-    }
+    // }
 
     onSelectAgainSchedule() {
         if (this.state.isLoading == true) {
@@ -1204,6 +1205,74 @@ class HomeViewModel extends React.Component {
         return listNamaDoctor.toUpperCase();
 
     }
+    //PROCESSS CHECKMATE VER 2
+    _onCheckHospitalByDoktor(id) {
+        let { _cell, data } = this.state;
+        console.log('doctor click ', id);
+        console.log(" cell", _cell);
+        this.setState({
+            convertDataState: [],
+        })
+        _cell.map(res => {
+            console.log(" cell res ", res);
+            if (id.data.locations) {
+                id.data.locations.map((idlocate, index) => {
+                    let gethospital = res.find(result => { return result.dataHospital.id == idlocate });
+                    if (gethospital) {
+                        let getdoktor = gethospital.dataHospital.doctors.find(
+                            doc => {
+                                return doc.id == id.listid;
+                            }
+                        );
+                        if (getdoktor) {
+                            getdoktor.isSelect = id.isSelect;
+                        }
+                        //auto check hospital
+                        let countSelectDokter = this._findSelectDoktorFromHospital(
+                            gethospital.dataHospital.doctors
+                        );
+                        if (
+                            countSelectDokter.length ==
+                            gethospital.dataHospital.doctors.length
+                        ) {
+                            gethospital.dataHospital.isSelect = 1;
+                        } else {
+                            gethospital.dataHospital.isSelect = 0;
+                        }
+                    }
+                });
+            } else {
+                callToast("Doctor Location id not found");
+            }
+        })
+        console.log(" cell done", _cell);
+        this.props.updateScheduleSelectDoktor(id);
+        //this.props.screenProps._updateReviewSchedule(id);
+        let _convertData = [];
+        for (var i = 0; i < _cell.length; i++) {
+            _cell[i].map(res => {
+                if (res.dataHospital.doctors.length > 0) {
+                    _convertData.push({
+                        title: res.dataHospital.name,
+                        parentdata: res,
+                        data: res.dataHospital.doctors,
+                        area: res.area
+                    })
+                }
+            });
+        }
+
+        console.log("DONE CHECK PROCESSS", _convertData)
+        this.setState({
+            isLoading: false,
+            //isSelectLoading:false,
+            convertDataState: _convertData,
+            _cell: _cell
+        }, () => {
+            this.getTotalShedule()
+            //this._setData()
+        })
+    }
     ///RENDER//
     //this.props.screenProps._callPopFeedback
     render() {
@@ -1260,19 +1329,19 @@ class HomeViewModel extends React.Component {
                 this._loadercontent()
             }
             {
-                convertDataState.length > 0 &&
                 <FlatList
                     style={{
                         width: convertWidth('100%'),
                         height: convertHeight('50%'),
                         //marginBottom:convertHeight('1%')
                     }}
+                    extraData={this.state}
                     data={convertDataState}
                     //pagingEnabled={true}
                     windowSize={10}
                     removeClippedSubviews={true}
                     initialNumToRender={8}
-                    extraData={this.state}
+
                     updateCellsBatchingPeriod={30}
                     maxToRenderPerBatch={2}
                     refreshControl={
@@ -1346,7 +1415,8 @@ function mapStateToProps(state) {
         isFirst: state.firstopen,
         userData: state.userData,
         userlocation: state.userGeolocation,
-        scheduleData: state.scheduleData,
+        //scheduleData: state.scheduleData,
+        currentSelectDoktor: state.currentSelectDoktor,
         currentScheduleData: state.currentScheduleData,
         userrole: state.userRole
     };
@@ -1359,6 +1429,8 @@ function dispatchToProps(dispatch) {
             dispatch({ type: ACTION_TYPE.UPDATE_USERROLE, value: role }),
         updateSchedule: schedule =>
             dispatch({ type: ACTION_TYPE.UPDATE_SCHEDULE, value: schedule }),
+        updateScheduleSelectDoktor: doktor =>
+            dispatch({ type: ACTION_TYPE.UPDATE_CURRENTSELECTDOKTOR, value: doktor }),
         updateUserLocation: data =>
             dispatch({ type: ACTION_TYPE.UPDATE_USER_LOCATION, value: data })
     };

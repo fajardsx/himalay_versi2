@@ -1,4 +1,4 @@
-import React, {Component} from 'react';
+import React, { Component } from 'react';
 import {
   Text,
   View,
@@ -11,7 +11,7 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 
 import Constant from '../../global/Constant';
 import user from '../../global/user';
-import {convertWidth} from '../../global/Global';
+import { convertWidth } from '../../global/Global';
 
 import LogoCheckno from '../../../assets/uncheck.svg';
 import LogoCheckyes from '../../../assets/check.svg';
@@ -117,7 +117,7 @@ class CheckComponent extends Component {
         } else if (first == 1) {
           first = 0;
         }
-        this.setState({statuscheck: first}, () => {
+        this.setState({ statuscheck: first }, () => {
           if (this.props.onCheckUpdate) {
             let data = null;
             if (this.props.keyid != null && this.props.listid == null) {
@@ -180,7 +180,7 @@ class CheckComponent extends Component {
     }
   }
   render() {
-    const {statuscheck} = this.state;
+    const { statuscheck } = this.state;
 
     return (
       <View
@@ -189,11 +189,11 @@ class CheckComponent extends Component {
         }>
         <TouchableOpacity onPress={() => this.onpresscheck()}>
           {this.getSrcChecl2()
-          /*<Image
-                        style={stylemenu.iconstyle}
-                        resizeMode={'contain'}
-                        source={this.getSrcChecl()}
-                    />*/
+            /*<Image
+                          style={stylemenu.iconstyle}
+                          resizeMode={'contain'}
+                          source={this.getSrcChecl()}
+                      />*/
           }
         </TouchableOpacity>
       </View>
