@@ -1541,6 +1541,7 @@ class TabController extends Component {
                                         console.log(res);
                                     })
                                 });
+                                that.onUpdateAfterSelectItem(res)//cleat select doctor
                             } else {
                                 if (res.api_message == "One of schedule date has already been set") {
                                     callToast(res.api_message)
@@ -1567,6 +1568,7 @@ class TabController extends Component {
 
 
     }
+
     //IF EMPTY
     _saveSelectSchedule(_schdeuleAToday) {
         console.log("_saveSelectSchedule", _schdeuleAToday);
@@ -1601,6 +1603,7 @@ class TabController extends Component {
             }
             F_I_F_O_GLOBAL_LOC(jdata);
         }
+        this.props.updateScheduleSelectDoktor([])//cleat select doctor
         //user.updateStatusRole(Constant.ROLE_READYSTARTSCHEDULE);
         // this.setState({
         //ROLE: Constant.ROLE_READYSTARTSCHEDULE
@@ -1962,6 +1965,13 @@ class TabController extends Component {
 
 
     }
+    ////////////////////////////////UDATE REDUCER///////////////////////////////////////////////////
+    onUpdateAfterSelectItem(data){
+        this.props.scheduleData.set_schedule = data.set_schedule;
+        this.props.scheduleData.list_doctor_set_today = data.list_doctor_set_today;
+        this.props.updateSchedule( this.props.scheduleData);
+        this.props.updateScheduleSelectDoktor([])
+    }
 
 }
 //EdetailingViewModel
@@ -2182,6 +2192,8 @@ function dispatchToProps(dispatch) {
             dispatch({ type: ACTION_TYPE.UPDATE_SCHEDULE,value:schedule }),
         updateCurrentSchedule: schedule =>
             dispatch({ type: ACTION_TYPE.UPDATE_CURRENTSCHEDULE,value:schedule }),
+        updateScheduleSelectDoktor: doktor =>
+            dispatch({ type: ACTION_TYPE.UPDATE_CURRENTSELECTDOKTOR, value: doktor }),
         updateAttendExpired: schedule =>
             dispatch({ type: ACTION_TYPE.UPDATE_USERATTENDEXPIRED,value:schedule })
     };

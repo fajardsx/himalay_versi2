@@ -9,7 +9,7 @@ const initialState = {
   currentScheduleData: null,
   userRole: -1,
   userAttendExpired: false,
-  currentSelectDoktor: []//only use went selectdokter and selectdoktor again
+  currentSelectDoktor: [], //only use went selectdokter and selectdoktor again
 };
 
 //REDUCER
@@ -20,41 +20,54 @@ const reducer = (state = initialState, action) => {
   // }
   switch (action.type) {
     case ACTION_TYPE.ISFIRST:
-      return { ...state, firstopen: action.value };
+      return {...state, firstopen: action.value};
     case ACTION_TYPE.UPDATE_USER:
-      return { ...state, userData: action.value };
+      return {...state, userData: action.value};
     case ACTION_TYPE.UPDATE_USER_LOCATION:
-      return { ...state, userGeolocation: action.value };
+      return {...state, userGeolocation: action.value};
     case ACTION_TYPE.UPDATE_SCHEDULE:
-      return { ...state, scheduleData: action.value };
+      return {...state, scheduleData: action.value};
     case ACTION_TYPE.UPDATE_CURRENTSCHEDULE:
-      return { ...state, currentScheduleData: action.value };
+      return {...state, currentScheduleData: action.value};
     case ACTION_TYPE.UPDATE_USERROLE:
-      return { ...state, userRole: action.value };
+      return {...state, userRole: action.value};
     case ACTION_TYPE.UPDATE_USERATTENDEXPIRED:
-      return { ...state, userAttendExpired: action.value };
+      return {...state, userAttendExpired: action.value};
     case ACTION_TYPE.UPDATE_CURRENTSELECTDOKTOR:
       //prosess
       let data = action.value;
       let tempselectitem = Object.assign([], state.currentSelectDoktor);
 
-      console.log(`reducers.js => ${ACTION_TYPE.UPDATE_CURRENTSELECTDOKTOR} => action.value `, action.value);
-      console.log(`reducers.js => ${ACTION_TYPE.UPDATE_CURRENTSELECTDOKTOR}  => tempselectitem `, tempselectitem);
-      if (data.isSelect == 1) {
-        let founddata = tempselectitem.find(res => { return res.listid == data.listid });
+      // console.log(
+      //   `reducers.js => ${ACTION_TYPE.UPDATE_CURRENTSELECTDOKTOR} => action.value `,
+      //   action.value,
+      // );
+      // console.log(
+      //   `reducers.js => ${ACTION_TYPE.UPDATE_CURRENTSELECTDOKTOR}  => tempselectitem `,
+      //   tempselectitem,
+      // );
+      if (data.isSelect == 1 && data.schedule == undefined) {
+        let founddata = tempselectitem.find(res => {
+          return res.listid == data.listid;
+        });
         if (!founddata) {
           tempselectitem.push(data);
         }
       }
-      if (data.isSelect == 0) {
-        let founddata = tempselectitem.findIndex(res => { return res.listid == data.listid });
+      if (data.isSelect == 0 && data.schedule == undefined) {
+        let founddata = tempselectitem.findIndex(res => {
+          return res.listid == data.listid;
+        });
         if (founddata > -1) {
           tempselectitem.splice(founddata, 1);
         }
       }
-      console.log(`reducers.js => ${ACTION_TYPE.UPDATE_CURRENTSELECTDOKTOR}  => tempselectitem `, tempselectitem);
+      console.log(
+        `reducers.js => ${ACTION_TYPE.UPDATE_CURRENTSELECTDOKTOR}  => tempselectitem `,
+        tempselectitem,
+      );
 
-      return { ...state, currentSelectDoktor: tempselectitem };
+      return {...state, currentSelectDoktor: tempselectitem};
     case ACTION_TYPE.CLEAR_DATA:
       return {
         ...state,

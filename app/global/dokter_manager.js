@@ -545,3 +545,30 @@ export function GetScheduleMonth(data, callback) {
     //callback(0);
   }
 }
+//CHECK NO SELECT DOCTOR NOT MEET
+export function CheckDokterSelect(data) {
+  let tempDokter = [];
+  if (data) {
+    let hospital = data;
+    let tempMetfound = [];
+    hospital.doctors.map((doktr, index) => {
+      if (
+        tempMetfound.find(result => {
+          return result.id == doktr.id;
+        }) == undefined
+      ) {
+        if (doktr.schedule.length > 0) {
+          tempMetfound.push(doktr);
+        }
+        //console.log('MEET', tempMetfound.length);
+      }
+    });
+
+    if (tempMetfound.length > 0) {
+      return false;
+    }
+    return true;
+  } else {
+    return false;
+  }
+}

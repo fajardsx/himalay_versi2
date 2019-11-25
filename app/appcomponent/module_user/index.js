@@ -296,6 +296,9 @@ class UserDashboard extends React.Component{
         this.setState({MslCount:data})
     }
     onSetTodayPlanCount(data){
+        if(this.props.userrole == Constant.ROLE_INSELECTSCHEDULE || this.props.userrole == Constant.ROLE_ADDDOCTORAGAIN){
+            data=data+this.props.currentSelectDoktor.length
+        }
         this.setState({todayplan:data})
     }
     onFinish(){

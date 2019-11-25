@@ -18,7 +18,7 @@ import ScheduleCell_opt from "../../appcomponent/module_schedulecell/scheduleCel
 import PAGE_CONFIG from "../../pagemanager/Module_pagemanager";
 import { LEMARI_GLOBAL_LOAD, TargetSelect, SYNCLoc } from "../../appcomponent/module_async/AsyncManager";
 import KEYS from "../../appcomponent/module_async/utils/keyAsync";
-import { getMonthSchedulerDoktor } from "../../global/dokter_manager";
+import { getMonthSchedulerDoktor, CheckDokterSelect } from "../../global/dokter_manager";
 import HospitalCell_opt from "../../appcomponent/module_schedulecell/component/hospitalCell";
 import DoktorCell_opt from "../../appcomponent/module_schedulecell/component/doktorCell";
 import DATA_SCHEDULE from "../../db/dataScheduleManager";
@@ -84,23 +84,6 @@ class HomeViewModel extends React.Component {
             }
         })
         this.inits();
-
-
-        // console.log("amonstSchedule",dataDummy);
-
-        // this.setInit();
-        /* setTimeout(() => {
-             this._checkStatus().then(res => {
-                 console.log("ROLE STATUS ", res);
-  
-                 console.log('CALL INIT');
-                // that.setInit();
-             });
-         }, 5000);*/
-
-        //AUTO REFRESH
-        //this.initRefresh();
-        // this.initRefreshServer();
         //KEYBOARD
         this.keyboardDidShowListener = Keyboard.addListener("keyboardDidShow", function () {
             isShow = 1;
@@ -183,9 +166,10 @@ class HomeViewModel extends React.Component {
                 NUMSELECT = 0;
                 this.setState(
                     {
-                        // isLoading: true,
+                         isLoading: true,
                         currentRole: prevProps.screenProps._role
-                    }
+                    },
+                    () => this.setToday()
 
                 );
             }
@@ -299,19 +283,22 @@ class HomeViewModel extends React.Component {
         } else if (this.props.userrole == Constant.ROLE_READYSTARTSCHEDULE) {
             dataDummy = this.props.currentScheduleData.set_schedule;
             this.initToday();
+        } else if (this.props.userrole == Constant.ROLE_ADDDOCTORAGAIN) {
+            dataDummy = this.props.currentScheduleData.visit_schedule;
+            this.initToday();
         } else {
-            if (this.props.screenProps._selectschedule) {
-                if (this.props.screenProps._selectschedule.length > 1) {
-                    dataDummy = this.props.screenProps._selectschedule;
-                    this.initToday();
-                } else {
-                    dataDummy = this.props.screenProps._dataschedule;
-                    this.initToday();
-                }
-            } else {
-                dataDummy = this.props.screenProps._dataschedule;
-                this.initToday();
-            }
+            // if (this.props.screenProps._selectschedule) {
+            //     if (this.props.screenProps._selectschedule.length > 1) {
+            //         dataDummy = this.props.screenProps._selectschedule;
+            //         this.initToday();
+            //     } else {
+            //         dataDummy = this.props.screenProps._dataschedule;
+            //         this.initToday();
+            //     }
+            // } else {
+            //     dataDummy = this.props.screenProps._dataschedule;
+            //     this.initToday();
+            // }
 
         }
     }
@@ -479,125 +466,49 @@ class HomeViewModel extends React.Component {
         }, []);
     }
 
-    //PROCESSS CHECKMATE
-    // _onCheckHospitalByDoktorBK(id) {
-    //     //  console.log('doctor click ', id);
-    //     let { _cell, data } = this.state;
-    //     // console.log(" data", data);
-    //     console.log(" cell", _cell);
-    //     this.setState({
-    //         isLoading: true,
-    //         convertDataState: []
-    //         // isSelectLoading:true
-    //     }, () => {
-    //         for (var i = 0; i < _cell.length; i++) {
-    //             //if (_cell[i].length > 0) {
-    //             if (id.data.locations) {
-    //                 id.data.locations.map((res, index) => {
-    //                     let placeHospital = _cell[i].find(result => {
-    //                         return result.dataHospital.id == res;
-    //                     });
-    //                     if (
-    //                         placeHospital == undefined ||
-    //                         placeHospital == null
-    //                     ) {
-    //                         return;
-    //                     }
-    //                     if (placeHospital.dataHospital) {
-    //                         // console.log("hospital ", placeHospital);
-    //                         let doktor = placeHospital.dataHospital.doctors.find(
-    //                             doc => {
-    //                                 return doc.id == id.listid;
-    //                             }
-    //                         );
-    //                         //  console.log("doktor ", doktor);
-    //                         if (doktor) {
-    //                             doktor.isSelect = id.isSelect;
-    //                         }
-    //                         //auto check hospital
-    //                         let countSelectDokter = this._findSelectDoktorFromHospital(
-    //                             placeHospital.dataHospital.doctors
-    //                         );
-    //                         if (
-    //                             countSelectDokter.length ==
-    //                             placeHospital.dataHospital.doctors.length
-    //                         ) {
-    //                             placeHospital.dataHospital.isSelect = 1;
-    //                         } else {
-    //                             placeHospital.dataHospital.isSelect = 0;
-    //                         }
-    //                     }
-    //                 });
-    //             } else {
-    //                 callToast("Doctor Location id not found");
-    //             }
-    //         }
-
-    //         this.props.screenProps._updateReviewSchedule(id);
-    //         let _convertData = [];
-    //         for (var i = 0; i < _cell.length; i++) {
-    //             _cell[i].map(res => {
-    //                 if (res.dataHospital.doctors.length > 0) {
-    //                     _convertData.push({
-    //                         title: res.dataHospital.name,
-    //                         parentdata: res,
-    //                         data: res.dataHospital.doctors,
-    //                         area: res.area
-    //                     })
-    //                 }
-    //             });
-    //         }
-
-    //         console.log("DONE CHECK PROCESSS")
-    //         this.setState({
-    //             isLoading: false,
-    //             //isSelectLoading:false,
-    //             convertDataState: _convertData,
-    //             _cell: _cell
-    //         }, () => {
-    //             this.getTotalShedule()
-    //             //this._setData()
-    //         })
-
-    //         //  console.log("update _convertData", _convertData)
-    //         // console.log("update data", _cell)
-    //     }
-    //     )
-
-    // }
 
     onSelectAgainSchedule() {
         if (this.state.isLoading == true) {
             return;
         }
-        this.setState({ isLoading: true });
         this.setState({
-            //isLoading:true,
-            currentRole: -1,
-            dataPage: [],
-            convertDataState: []
-        }, () => {
-            user.updateStatusRole(Constant.ROLE_ADDDOCTORAGAIN)
-            this.props.updateRole(Constant.ROLE_ADDDOCTORAGAIN)
-            //this.props.screenProps._onUpdateRole(Constant.ROLE_ADDDOCTORAGAIN);
-            this.onCompareDokter();
-        });
+                convertDataState: []
+            },()=>{
+                this.props.updateRole(Constant.ROLE_ADDDOCTORAGAIN)
+            });
+        
+        // this.setState({ isLoading: true });
+        // this.setState({
+        //     //isLoading:true,
+        //     currentRole: -1,
+        //     dataPage: [],
+        //     convertDataState: []
+        // }, () => {
+        //     user.updateStatusRole(Constant.ROLE_ADDDOCTORAGAIN)
+        //     this.props.updateRole(Constant.ROLE_ADDDOCTORAGAIN)
+        //     //this.props.screenProps._onUpdateRole(Constant.ROLE_ADDDOCTORAGAIN);
+        //     this.onCompareDokter();
+        // });
     }
     onCancelAgainSchedule() {
         if (this.state.isLoading == true) {
             return;
-        }
-        this.setState({ isLoading: true });
-        user.updateStatusRole(Constant.ROLE_READYSTARTSCHEDULE)
-        this.props.updateRole(Constant.ROLE_READYSTARTSCHEDULE)
-        this.props.screenProps._onUpdateRole(Constant.ROLE_READYSTARTSCHEDULE);
-
-        this.setState({
-            //isLoading:true,
-            on_max: [Constant.MAX_CELL, Constant.MAX_CELL]
-        }, () => {
-            this._onRefresh();
+        } this.setState({
+            convertDataState: []
+        },()=>{ this.props.updateRole(Constant.ROLE_READYSTARTSCHEDULE)
         });
+       
+        // this.setState({ isLoading: true });
+        // user.updateStatusRole(Constant.ROLE_READYSTARTSCHEDULE)
+        // this.props.updateRole(Constant.ROLE_READYSTARTSCHEDULE)
+        // this.props.screenProps._onUpdateRole(Constant.ROLE_READYSTARTSCHEDULE);
+
+        // this.setState({
+        //     //isLoading:true,
+        //     on_max: [Constant.MAX_CELL, Constant.MAX_CELL]
+        // }, () => {
+        //     this._onRefresh();
+        // });
     }
     //Reset AddAgain
     onResetSelect() {
@@ -762,37 +673,37 @@ class HomeViewModel extends React.Component {
     sortByLocation() {
         const _role = this.props.userrole;
         console.log("Process sortByLocation ");
-        if (_role == Constant.ROLE_READYSTARTSCHEDULE || _role == Constant.ROLE_FINISHTODAY) {
+        // if (_role == Constant.ROLE_READYSTARTSCHEDULE || _role == Constant.ROLE_FINISHTODAY) {
 
-            TargetSelect().then(resSelect => {
-                console.log('from off select', resSelect)
+        //     TargetSelect().then(resSelect => {
+        //         console.log('from off select', resSelect)
 
-                if (resSelect != undefined) {
-                    if (resSelect.length > 0) {
-                        that.setState({
+        //         if (resSelect != undefined) {
+        //             if (resSelect.length > 0) {
+        //                 that.setState({
 
-                            //dataschedule: res.visit_schedule,
-                            //data: res.set_schedule.slice(0),
-                            isLoading: true,
-                            data: resSelect
-                            //res.set_schedule.slice(0)
-                        }, () => {
-                            that.filterLocation(this.state.data)
-                        });
-                    } else {
-                        that.filterLocation(this.state.data)
-                    }
-                } else {
-                    that.filterLocation(this.state.data);
-                }
+        //                     //dataschedule: res.visit_schedule,
+        //                     //data: res.set_schedule.slice(0),
+        //                     //isLoading: true,
+        //                     data: resSelect
+        //                     //res.set_schedule.slice(0)
+        //                 }, () => {
+        //                     that.filterLocation(this.state.data)
+        //                 });
+        //             } else {
+        //                 that.filterLocation(this.state.data)
+        //             }
+        //         } else {
+        //             that.filterLocation(this.state.data);
+        //         }
 
 
-            })
-        } else {
-            if (this.props.currentScheduleData) {
-                this.filterLocation(this.props.currentScheduleData.visit_schedule)
+        //     })
+        // } else {
+            if (this.state.data) {
+                this.filterLocation(this.state.data)
             }
-        }
+        //}
     }
     filterLocation(_monthSchedule) {
         console.log('sort', _monthSchedule);
@@ -841,29 +752,51 @@ class HomeViewModel extends React.Component {
             //console.log(rsLat+","+rsLng)
             //console.log(Math.round(jarak))
             // jarak=undefined;
-
-            if (jarak == undefined) {
-                getLocation = false;
-            } else if (jarak) {
-                if (Math.floor(jarak) > Number(Constant.MAX_DISTANCE)) {
-
+            console.log(`${rs.name} Found ${ CheckDokterSelect(rs)}`);
+            if(this.props.userrole == Constant.ROLE_ADDDOCTORAGAIN && CheckDokterSelect(rs) == false){
+                   return console.log("Found");
+            }else if(this.props.userrole == Constant.ROLE_READYSTARTSCHEDULE && CheckDokterSelect(rs) == false){
+                if (jarak == undefined) {
+                    getLocation = false;
+                } else if (jarak) {
+                    if (Math.floor(jarak) > Number(Constant.MAX_DISTANCE)) {
+    
+                        jrkTxt = "> " + `${Constant.MAX_DISTANCE} km`;
+                        rsnear = false;
+                        groupByid.push({ 'jarak': jarak, 'radius': Math.floor(jarak), "rsnear": rsnear, 'jaraktext': jrkTxt, 'dataHospital': rs });
+                    } else {
+                        jrkTxt = "< " + `${Constant.MAX_DISTANCE} km`;
+                        rsnear = true;
+                        groupByid.push({ 'jarak': jarak, 'radius': Math.floor(jarak), "rsnear": rsnear, 'jaraktext': jrkTxt, 'dataHospital': rs });
+                    }
+    
+                } else {
                     jrkTxt = "> " + `${Constant.MAX_DISTANCE} km`;
                     rsnear = false;
-                    groupByid.push({ 'jarak': jarak, 'radius': Math.floor(jarak), "rsnear": rsnear, 'jaraktext': jrkTxt, 'dataHospital': rs });
-                } else {
-                    jrkTxt = "< " + `${Constant.MAX_DISTANCE} km`;
-                    rsnear = true;
-                    groupByid.push({ 'jarak': jarak, 'radius': Math.floor(jarak), "rsnear": rsnear, 'jaraktext': jrkTxt, 'dataHospital': rs });
+                    groupByid.push({ 'jarak': jarak, 'radius': -1, "rsnear": null, 'jaraktext': jrkTxt, 'dataHospital': rs });
                 }
-
-            } else {
-                jrkTxt = "> " + `${Constant.MAX_DISTANCE} km`;
-                rsnear = false;
-                groupByid.push({ 'jarak': jarak, 'radius': -1, "rsnear": null, 'jaraktext': jrkTxt, 'dataHospital': rs });
+            }else{
+                if (jarak == undefined) {
+                    getLocation = false;
+                } else if (jarak) {
+                    if (Math.floor(jarak) > Number(Constant.MAX_DISTANCE)) {
+    
+                        jrkTxt = "> " + `${Constant.MAX_DISTANCE} km`;
+                        rsnear = false;
+                        groupByid.push({ 'jarak': jarak, 'radius': Math.floor(jarak), "rsnear": rsnear, 'jaraktext': jrkTxt, 'dataHospital': rs });
+                    } else {
+                        jrkTxt = "< " + `${Constant.MAX_DISTANCE} km`;
+                        rsnear = true;
+                        groupByid.push({ 'jarak': jarak, 'radius': Math.floor(jarak), "rsnear": rsnear, 'jaraktext': jrkTxt, 'dataHospital': rs });
+                    }
+    
+                } else {
+                    jrkTxt = "> " + `${Constant.MAX_DISTANCE} km`;
+                    rsnear = false;
+                    groupByid.push({ 'jarak': jarak, 'radius': -1, "rsnear": null, 'jaraktext': jrkTxt, 'dataHospital': rs });
+                }
             }
-
-
-
+            
         });
 
         if (getLocation == false && _monthSchedule.length > 0) {
@@ -1300,6 +1233,7 @@ class HomeViewModel extends React.Component {
                     onAgain={this.onSelectAgainSchedule.bind(this)}
                     onCancelAgain={this.onCancelAgainSchedule.bind(this)}
                     onOpenlist={this.props.screenProps._onOpenList.bind(this)}
+                    profilDok={this.props.userData}
                     atExpenses={false}
                     {...this.props}
                 />
@@ -1372,7 +1306,7 @@ class HomeViewModel extends React.Component {
                         onNotAvaiable={this._onNotAvaiable.bind(this)}
                     //onMax={on_max[index]}
                     />}
-                    scrollEventThrottle={100}
+                    //scrollEventThrottle={100}
                     keyExtractor={(item, index) => index.toString()}
                 />
             }
@@ -1381,10 +1315,10 @@ class HomeViewModel extends React.Component {
                 loadLoading == true && onlyLoading()
             }
             {
-                isSelectLoading == true && loading()
+                //isSelectLoading == true && loading()
             }
             {
-                isLoading == true && loading()
+               // isLoading == true && loading()
             }
         </View>
     }
